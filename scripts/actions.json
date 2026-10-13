@@ -1,0 +1,13 @@
+{
+ "note": "The one-button actions of DaVinci Resolve Actions. A new action is a script in this folder and one entry here: id, name, script, args (optional), about, menu (true: also installed into Resolve's Workspace › Scripts › Utility). The app runs it with Resolve's Python from outside (External scripting = Local); its last printed line is shown. Shortcuts are his, set in the window, kept in ~/.config/resolve-actions.json.",
+ "actions": [
+  {"id": "create-timeline", "name": "Create Timeline", "script": "Create Timeline.py", "menu": true,
+   "about": "A new timeline from the clips selected in the Media Pool, named after the first clip, nothing asked."},
+  {"id": "previous-page", "name": "Previous Page", "script": "Previous Page.py", "menu": true,
+   "about": "Back to the page used before this one; twice and you are back."},
+  {"id": "toggle-hd-uhd", "name": "Toggle HD / UHD", "script": "Toggle HD UHD.py", "menu": true,
+   "about": "The project (and a timeline with its own settings) flips between 1920x1080 and 3840x2160."},
+  {"id": "check", "name": "Check everything", "script": "check.py",
+   "about": "Is Resolve up, does its API answer, which project, resolution, page, pages in the bar, scripts installed and current."}
+ ]
+}
