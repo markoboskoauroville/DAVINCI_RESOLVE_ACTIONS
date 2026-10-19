@@ -23,12 +23,19 @@ What goes under it (inventory 13.10.2026):
 (MANTRA_MANIFEST modules/swift-apps.md, "ON / OFF at the top of every window"; the star, STAR_SWIFT v5, now only opens apps.)
 
 1. The first row of the main window is ON / OFF in the window's own style, named after what it switches. ON is lit while
-   the app runs; OFF stops the engine cleanly and quits the app. — **Status:** started
+   the app runs; OFF stops the engine cleanly and quits the app. — **Status:** built 19.10.2026, v3: DAVINCI RESOLVE
+   ACTIONS  ON  OFF above the scrolling modules (each module keeps its own ON / OFF below); OFF = NSApp.terminate,
+   applicationWillTerminate stops pages_helper.py. Restarted 48786 → 39089 (helper 7248 left with the old app, new
+   helper 39091). It came up without a window; a second `open` (the reopen) made it, which checks the reopen path.
+   Checked by screenshot. Marko to try OFF.
 2. Closing the window leaves the app ON; the reopen (a click in the star or the Dock) shows the window again; `--login`
-   still starts without a window. — **Status:** started
+   still starts without a window. — **Status:** built 19.10.2026, v3 (it already stayed on without its window; the
+   reopen and Settings… now bring a closed window back; it has no --login).
 
 > please unify the position of the close button on every application. It's far upper right corner. There is X to close the dialog in every dialog, same.
 
 3. An ✕ at the window's far upper-right corner, on the ON / OFF row (ON / OFF at the left, ✕ at the right), grey; it
    closes the window only, the app stays ON. Every other dialog the app opens gets the same ✕. The title bar and its
-   traffic lights stay as they are. — **Status:** started
+   traffic lights stay as they are. — **Status:** built 19.10.2026, v3: ✕ (xmark, grey, 30×30) at the far right of
+   the ON / OFF row, performClose. No other dialog (the pages HUD is an overlay, not a window he closes). Checked by
+   screenshot. Marko to try ✕.

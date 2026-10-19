@@ -5,9 +5,16 @@ Resolve need to go under one common software called Davinci Resolve Actions. In 
 there many other actions which are going to automate by one button things inside Davinci Resolve ... Everything comes
 under one umbrella application."*
 
-`/Applications/DaVinci Resolve Actions (Mantra).app`, signed "Mantra Apps", built by `./build.sh`; the star opens and
-quits it. While Resolve runs, one word sits in the menu bar, **`EDT · HD`** (the page and the resolution); its menu
+`/Applications/DaVinci Resolve Actions (Mantra).app`, signed "Mantra Apps", built by `./build.sh`; the star opens it. While Resolve runs, one word sits in the menu bar, **`EDT · HD`** (the page and the resolution); its menu
 reaches the pages, the HD/UHD switch, every action and the settings window.
+
+## ON / OFF and the ✕ (v3, 19.10.2026)
+
+The window starts with **DAVINCI RESOLVE ACTIONS  ON  OFF** (MANTRA_MANIFEST swift-apps.md): ON is lit while it runs;
+OFF quits it (the pages helper stops, the shortcuts and the import button go with it). The ✕ at the far right of that
+row (Marko: *"unify the position of the close button on every application. It's far upper right corner"*) closes the
+window only; every module keeps working, and a click on its row in the star, or Settings… in its menu-bar word, brings
+the window back.
 
 ## Inside
 

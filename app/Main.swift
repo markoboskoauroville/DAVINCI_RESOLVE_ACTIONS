@@ -3,6 +3,11 @@
 // future, we are going to store there many other actions ... So no multiple now things for Resolve. Everything comes
 // under one umbrella application." Inside: PAGES, HD / UHD, IMPORT BUTTON (each on or off), and the ONE-BUTTON ACTIONS
 // (scripts/actions.json). One word in the menu bar while Resolve runs, "EDT · HD", whose menu reaches all of it.
+// v3 (19.10.2026, Marko: "In the top of every user interface, there will now be an on/off switch ... If I say on, I
+// close it's on" and "please unify the position of the close button on every application. It's far upper right
+// corner"): the first row is DAVINCI RESOLVE ACTIONS  ON  OFF with the ✕ at its far right. OFF quits (the pages helper
+// stops, the shortcuts and the import button's tap go with the app); ✕ (or the red button) closes the window only, every
+// module keeps working. The star only opens it now.
 import SwiftUI
 import AppKit
 
@@ -87,7 +92,8 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
     @objc func runAction(_ i: NSMenuItem) { if let id = i.representedObject as? String, let a = actions.list.first(where: { $0.id == id }) { actions.run(a) } }
     @objc func showSettings() {
         NSApp.activate(ignoringOtherApps: true)
-        NSApp.windows.first { $0.title.contains("DaVinci Resolve Actions") }?.makeKeyAndOrderFront(nil)
+        if let w = NSApp.windows.first(where: { $0.title.contains("DaVinci Resolve Actions") }) { w.makeKeyAndOrderFront(nil) }
+        else { NSWorkspace.shared.open(Bundle.main.bundleURL) }    // v3: closed with ✕, the reopen makes it again
     }
 }
 
@@ -123,6 +129,18 @@ struct SettingsView: View {
     @ObservedObject var importer: ImportModule
     @ObservedObject var actions: ActionsModule
     var body: some View {
+        VStack(spacing: 0) {
+        // v3 (19.10.2026): ON / OFF first, above the scrolling modules; the ✕ at the far right closes the window only
+        HStack(spacing: 4) {
+            Text("DAVINCI RESOLVE ACTIONS").font(.system(size: 13, weight: .bold, design: .monospaced)).foregroundColor(.white).padding(.trailing, 6)
+            Word(text: "ON", on: true) {}.help("DaVinci Resolve Actions runs")
+            Word(text: "OFF", on: false) { NSApp.terminate(nil) }.help("Stop every module and quit")
+            Spacer()
+            Button(action: { (NSApp.keyWindow ?? NSApp.windows.first { $0.title.contains("DaVinci Resolve Actions") })?.performClose(nil) }) {
+                Image(systemName: "xmark").font(.system(size: 15, weight: .medium)).foregroundColor(GREY)
+                    .frame(width: 30, height: 30).contentShape(Rectangle())
+            }.buttonStyle(.plain).help("Close the window (DaVinci Resolve Actions stays ON)")
+        }.padding(.leading, 24).padding(.trailing, 12).padding(.top, 10).padding(.bottom, 4)
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
@@ -194,6 +212,7 @@ struct SettingsView: View {
             }
             .padding(24)
         }
+        }
         .frame(width: 600, height: 760).background(INK).preferredColorScheme(.dark)
     }
 }
@@ -207,6 +226,14 @@ final class Delegate: NSObject, NSApplicationDelegate {
         _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ s: NSApplication) -> Bool { false }
+    // v3 (19.10.2026): the reopen (the star's row, the Dock) brings the window back, or lets the WindowGroup make a new one
+    func applicationShouldHandleReopen(_ s: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        let ws = s.windows.filter { $0.title.contains("DaVinci Resolve Actions") && ($0.isMiniaturized || $0.isVisible) }
+        if ws.isEmpty { return true }
+        for w in ws { w.deminiaturize(nil); w.makeKeyAndOrderFront(nil) }
+        s.activate(ignoringOtherApps: true)
+        return false
+    }
     func applicationWillTerminate(_ n: Notification) { UMBRELLA.pages.stopHelper() }
 }
 
