@@ -15,3 +15,14 @@ What goes under it (inventory 13.10.2026):
 - The DaVinci Resolve MCP (run_script and the scripting API) as the second road for new actions.
 
 **Status:** saved; not started.
+
+## 19.10.2026: ON / OFF at the top of the window
+
+> When I select any of the apps, the user interface opens up. In the top of every user interface, there will now be an on/off switch ... If I say on, I close it's on ... When I just switch the check mark, and that's how I activate it. This is gone. Let's work like this. This is the workflow now.
+
+(MANTRA_MANIFEST modules/swift-apps.md, "ON / OFF at the top of every window"; the star, STAR_SWIFT v5, now only opens apps.)
+
+1. The first row of the main window is ON / OFF in the window's own style, named after what it switches. ON is lit while
+   the app runs; OFF stops the engine cleanly and quits the app. — **Status:** started
+2. Closing the window leaves the app ON; the reopen (a click in the star or the Dock) shows the window again; `--login`
+   still starts without a window. — **Status:** started
