@@ -39,3 +39,10 @@ What goes under it (inventory 13.10.2026):
    traffic lights stay as they are. — **Status:** built 19.10.2026, v3: ✕ (xmark, grey, 30×30) at the far right of
    the ON / OFF row, performClose. No other dialog (the pages HUD is an overlay, not a window he closes). Checked by
    screenshot. Marko to try ✕.
+
+## 20.10.2026: J K L everywhere, the playhead in Resolve from anywhere
+
+> we need to update my Davinci Resolve actions. We are building a new action which will block JKL keys anywhere in the system, and it will use JKL keys to control the playhead in the Davinci Resolve remotely, being Davinci Resolve in focus or not. Please build this module now
+
+1. A new module, J K L, ON / OFF like the others: while it is ON, J, K and L never reach the app in front (any app);
+   they move Resolve's playhead the way Resolve's own J K L do, whether Resolve is in front or not. — **Status:** saved; not started.
