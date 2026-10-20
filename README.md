@@ -23,6 +23,7 @@ the window back.
 | **PAGES** | ⌥\` in Resolve walks its pages like ⌘Tab (⇧ back), let go to open, a quick tap = the last page; the ring is his choice | `~/.config/pages.json` |
 | **HD / UHD** | the project flips between 1920x1080 and 3840x2160; a shortcut if he sets one | `~/.config/hdbadge.json` |
 | **IMPORT BUTTON** | the mouse's thumb button in Resolve = ⌘I, Import Media; LEARN THE BUTTON, the keys are his | `~/.config/importbutton.json` |
+| **J K L** (v4) | J, K, L in any app drive Resolve's playhead; the app in front never sees them (⌘ ⌃ ⌥ combinations stay letters). Resolve takes the focus without coming forward and gives it back 1.5 s after the last key, or at once on any other key. Switch: the window, or "J K L → Resolve from anywhere" in the menu-bar word | `resolve-actions.json` |
 | **ONE-BUTTON ACTIONS** | `scripts/actions.json`: Create Timeline, Previous Page, Toggle HD/UHD, Check everything; a shortcut each | `~/.config/resolve-actions.json` |
 
 Each module is ON or OFF in the window (`resolve-actions.json` → `modules`). Every shortcut is live only while Resolve
@@ -44,4 +45,4 @@ Resolve Pages, UHD HD Display and Import Button; and the `resolve-scripts` repos
 `scripts/`). `scripts/Snap Captions.lua` is a Fusion composition script that runs inside Resolve's Fusion page (Fusion
 speaks Lua); it is kept here with the rest, not run by the app.
 
-Permission: Accessibility, for the import button's event tap only.
+Permission: Accessibility, for the event taps of the import button and J K L.

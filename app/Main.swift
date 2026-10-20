@@ -8,6 +8,9 @@
 // corner"): the first row is DAVINCI RESOLVE ACTIONS  ON  OFF with the ✕ at its far right. OFF quits (the pages helper
 // stops, the shortcuts and the import button's tap go with the app); ✕ (or the red button) closes the window only, every
 // module keeps working. The star only opens it now.
+// v4 (20.10.2026, Marko: "block JKL keys anywhere in the system, and it will use JKL keys to control the playhead in the
+// Davinci Resolve remotely, being Davinci Resolve in focus or not"): the J K L module (JKL.swift), and its switch in the
+// menu-bar word, so the letters come back in one click.
 import SwiftUI
 import AppKit
 
@@ -16,6 +19,7 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
     let display = DisplayModule()
     let importer = ImportModule()
     let actions = ActionsModule()
+    let jkl = JKLModule()
     @Published var on: [String: Bool] = [:]
     let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
@@ -23,12 +27,12 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
         super.init()
         let saved = SETTINGS.read()["modules"] as? [String: Bool] ?? [:]
         // first run: the modules that were on in the star's Lua apps stay on
-        on = ["pages": saved["pages"] ?? true, "display": saved["display"] ?? true, "import": saved["import"] ?? true]
+        on = ["pages": saved["pages"] ?? true, "display": saved["display"] ?? true, "import": saved["import"] ?? true, "jkl": saved["jkl"] ?? true]
         let menu = NSMenu(); menu.delegate = self; item.menu = menu
         item.button?.toolTip = "DaVinci Resolve Actions: the page and the resolution; click for everything"
         pages.onChange = { [weak self] in self?.paint() }
         display.onChange = { [weak self] in self?.paint() }
-        pages.setOn(on["pages"]!); display.on = on["display"]!; importer.setOn(on["import"]!)
+        pages.setOn(on["pages"]!); display.on = on["display"]!; importer.setOn(on["import"]!); jkl.setOn(on["jkl"]!)
         let nc = NSWorkspace.shared.notificationCenter
         nc.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] n in
             guard (n.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier == BUNDLE else { return }
@@ -50,7 +54,7 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
 
     func setModule(_ k: String, _ v: Bool) {
         on[k] = v; SETTINGS.change { $0["modules"] = self.on }
-        switch k { case "pages": pages.setOn(v); case "display": display.on = v; if v { display.read() }; default: importer.setOn(v) }
+        switch k { case "pages": pages.setOn(v); case "display": display.on = v; if v { display.read() }; case "jkl": jkl.setOn(v); default: importer.setOn(v) }
         rebindKeys(); paint()
     }
     func rebindKeys() { HotKeys.shared.set(pages.hotkeys() + display.hotkeys() + actions.keys()) }
@@ -81,6 +85,8 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
             add("Switch to \(display.mode == "UHD" ? "HD" : "UHD")  (now \(display.mode))", #selector(switchHD))
             menu.addItem(.separator())
         }
+        add("J K L → Resolve from anywhere", #selector(flipJKL), state: on["jkl"]!)
+        menu.addItem(.separator())
         add("ACTIONS", nil)
         for a in actions.list { add("  " + a.name + (actions.hotkeys[a.id].map { "  (\($0))" } ?? ""), #selector(runAction(_:)), a.id) }
         menu.addItem(.separator())
@@ -89,6 +95,7 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
     @objc func pickPage(_ i: NSMenuItem) { if let p = i.representedObject as? String { pages.open(p) } }
     @objc func prevPage() { pages.previous() }
     @objc func switchHD() { display.toggle() }
+    @objc func flipJKL() { setModule("jkl", !on["jkl"]!) }
     @objc func runAction(_ i: NSMenuItem) { if let id = i.representedObject as? String, let a = actions.list.first(where: { $0.id == id }) { actions.run(a) } }
     @objc func showSettings() {
         NSApp.activate(ignoringOtherApps: true)
@@ -128,6 +135,7 @@ struct SettingsView: View {
     @ObservedObject var display: DisplayModule
     @ObservedObject var importer: ImportModule
     @ObservedObject var actions: ActionsModule
+    @ObservedObject var jkl: JKLModule
     var body: some View {
         VStack(spacing: 0) {
         // v3 (19.10.2026): ON / OFF first, above the scrolling modules; the ✕ at the far right closes the window only
@@ -191,6 +199,19 @@ struct SettingsView: View {
                     }
                 }
                 Divider()
+                // J K L
+                VStack(alignment: .leading, spacing: 8) {
+                    ModuleHead(title: "J K L", on: u.on["jkl"]!, set: { u.setModule("jkl", $0) }, value: "→ RESOLVE")
+                    if u.on["jkl"]! {
+                        Small(text: "J, K and L (alone or with ⇧) play, stop and shuttle Resolve from any app; that app never sees them. Resolve takes the focus for them without coming forward and gives it back \(String(format: "%.1f", FOCUS_BACK)) s after the last one, or at once on any other key. With ⌘ ⌃ ⌥ they stay normal letters.")
+                        if !jkl.tapOK {
+                            Text("Accessibility: not allowed yet. System Settings → Privacy & Security → Accessibility → DaVinci Resolve Actions (Mantra) on.")
+                                .font(.system(size: 11)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true)
+                        }
+                        if !jkl.said.isEmpty { Small(text: jkl.said) }
+                    }
+                }
+                Divider()
                 // THE ONE-BUTTON ACTIONS
                 VStack(alignment: .leading, spacing: 10) {
                     HStack { Text("ONE-BUTTON ACTIONS").font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(.white); Spacer()
@@ -241,7 +262,7 @@ final class Delegate: NSObject, NSApplicationDelegate {
     @NSApplicationDelegateAdaptor(Delegate.self) var delegate
     var body: some Scene {
         WindowGroup("DaVinci Resolve Actions (Mantra)") {
-            SettingsView(u: UMBRELLA, pages: UMBRELLA.pages, display: UMBRELLA.display, importer: UMBRELLA.importer, actions: UMBRELLA.actions)
+            SettingsView(u: UMBRELLA, pages: UMBRELLA.pages, display: UMBRELLA.display, importer: UMBRELLA.importer, actions: UMBRELLA.actions, jkl: UMBRELLA.jkl)
         }.windowResizability(.contentSize)
     }
 }

@@ -45,4 +45,9 @@ What goes under it (inventory 13.10.2026):
 > we need to update my Davinci Resolve actions. We are building a new action which will block JKL keys anywhere in the system, and it will use JKL keys to control the playhead in the Davinci Resolve remotely, being Davinci Resolve in focus or not. Please build this module now
 
 1. A new module, J K L, ON / OFF like the others: while it is ON, J, K and L never reach the app in front (any app);
-   they move Resolve's playhead the way Resolve's own J K L do, whether Resolve is in front or not. — **Status:** saved; not started.
+   they move Resolve's playhead the way Resolve's own J K L do, whether Resolve is in front or not. — **Status:** built
+   20.10.2026, v4 (app/JKL.swift): an event tap keeps J K L (alone or with ⇧) from every app while Resolve runs; Resolve
+   becomes the active app without raising a window, plays the keys as its own, and the app he was in gets the focus back
+   1.5 s after the last one (any other key gives it back at once and goes there). Keys to Resolve in the background were
+   tried first and Resolve ignores them (LESSONS 4). ON by default; "J K L → Resolve from anywhere" in the menu-bar word
+   switches it. Restarted 751 → 32920. Marko to try: L, K, J from another app.
