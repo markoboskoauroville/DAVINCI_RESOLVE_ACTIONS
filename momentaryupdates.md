@@ -50,4 +50,4 @@ What goes under it (inventory 13.10.2026):
    becomes the active app without raising a window, plays the keys as its own, and the app he was in gets the focus back
    1.5 s after the last one (any other key gives it back at once and goes there). Keys to Resolve in the background were
    tried first and Resolve ignores them (LESSONS 4). ON by default; "J K L → Resolve from anywhere" in the menu-bar word
-   switches it. Restarted 751 → 32920. Marko to try: L, K, J from another app.
+   switches it. Restarted 751 → 32920. Marko tried it 20.10.2026: "yes, it moved. I tested it."
