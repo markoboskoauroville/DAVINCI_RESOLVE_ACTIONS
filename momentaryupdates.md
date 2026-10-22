@@ -62,3 +62,13 @@ What goes under it (inventory 13.10.2026):
    notifications. Now: the shortcut is caught by an event tap at the press, an open unanswered in 0.6 s becomes Resolve's
    own ⇧2..⇧8, orphaned helpers are killed, every press is logged in ~/.config/resolve-assistant.log. Restarted
    23405 → 27571. Marko to try ⌥` in Resolve.
+
+## 22.10.2026: the Resolve API router
+
+> yes, I can switch between pages only in the menu. But actually, in reality the Davinci doesn't switch pages right now. There's another session, Elevate Media Local, who is using Davinci, so there is some clash in API access. We need to solve this API access. You need to make API access router for Davinci to resolve this kind of problems. If two apps are reaching resolve at the same time, talk with Elevate Media Local and please coordinate how you use Davinci resolve and fix that. When I have menu item and switch to another page, actually the action is happening now. It's not happening
+
+1. One router owns Resolve's scripting connection; every app and every session sends its calls through it, one at a
+   time, each with a timeout, and hears "busy" at once instead of hanging. — **Status:** building.
+2. Coordinate with "elevate media local". — **Status:** asked what ran at 18:05; it waits for the router.
+3. A page chosen in the menu must really change in Resolve. — **Status:** found Resolve's main thread spinning at 100 %
+   since about 18:05 (no API, no keys get in); four stuck "Toggle HD UHD --read" of ours removed, Resolve still spins.
