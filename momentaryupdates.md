@@ -51,3 +51,9 @@ What goes under it (inventory 13.10.2026):
    1.5 s after the last one (any other key gives it back at once and goes there). Keys to Resolve in the background were
    tried first and Resolve ignores them (LESSONS 4). ON by default; "J K L → Resolve from anywhere" in the menu-bar word
    switches it. Restarted 751 → 32920. Marko tried it 20.10.2026: "yes, it moved. I tested it."
+
+## 22.10.2026: ⌥` sometimes works, sometimes not
+
+> Please fix my app Devon the Da Vinci Resolve Actions. There is a bug. Alt tick doesn't work to change my pages. Sometimes works, sometimes doesn't. So I'm confused what is that? You need to debug this application so it works. And eat category in the star menu, please change to Da Vinci Resolve Actions. But there is no need for category. If any category has only one entry. Actually, there should be direct access. If there is more than one, then we go to sub-menus. Fix everything.
+
+1. ⌥` walks the pages every time. — **Status:** debugging.
