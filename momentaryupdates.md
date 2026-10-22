@@ -69,6 +69,15 @@ What goes under it (inventory 13.10.2026):
 
 1. One router owns Resolve's scripting connection; every app and every session sends its calls through it, one at a
    time, each with a timeout, and hears "busy" at once instead of hanging. — **Status:** building.
-2. Coordinate with "elevate media local". — **Status:** asked what ran at 18:05; it waits for the router.
+2. Coordinate with "elevate media local". — **Status:** it overwrote four .movs on the open timeline with ffmpeg at 17:30–17:55 (the likely cause of the spin), no API calls of its own then. It got the resolve-run commands and holds Resolve while it works.
 3. A page chosen in the menu must really change in Resolve. — **Status:** found Resolve's main thread spinning at 100 %
-   since about 18:05 (no API, no keys get in); four stuck "Toggle HD UHD --read" of ours removed, Resolve still spins.
+   since about 18:05 (no API, no keys get in); four stuck "Toggle HD UHD --read" of ours removed, Resolve still spins. Marko restarted Resolve; through the router the page changes in 0.16 s.
+
+## 22.10.2026: Resolve on the BenQ
+
+> Davinci is always open. Please configure it so it opens on BenQ monitor, not on this monitor of MacBook Pro ... Please shut down Davinci. Don't care about lost work, and open it on BenQ and tell me why it's not opening
+
+1. Why: Resolve's Workspace → Primary Display was "Built-in Retina Display"; moving the window by hand does not change
+   it, so every start put Resolve back on the MacBook. — **Status:** done 22.10.2026: Resolve killed, reopened, Primary
+   Display set to "BenQ LCD" through its own menu (Accessibility); the window is 0,0 2560×1440 on the BenQ; saved by
+   Resolve (UI.preset PrimaryScreenIdx 0, 18:22). Marko: "issue with monitor fixed now".

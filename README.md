@@ -46,3 +46,11 @@ Resolve Pages, UHD HD Display and Import Button; and the `resolve-scripts` repos
 speaks Lua); it is kept here with the rest, not run by the app.
 
 Permission: Accessibility, for the event taps of the shortcuts (v5: ⌥` and the others are caught at the press, only when the key goes to Resolve), the import button and J K L. Every page press is logged in `~/.config/resolve-assistant.log`; when Resolve is too busy to answer its API in 0.6 s, Resolve's own ⇧2..⇧8 open the page.
+
+## The router (v6, 22.10.2026)
+
+`scripts/resolve_router.py` is the one connection to Resolve's scripting API, for this app and every Claude session.
+It runs calls one at a time with a timeout and answers busy at once when Resolve hangs. The app starts it while Resolve
+runs. `resolve-run` (linked into ~/.local/bin) is the command-line door: `resolve-run status`, `resolve-run --who me
+job.py`, `hold`/`release`. Port `resolve` (8940) in ~/.config/mantra-ports.json, log ~/.config/resolve-router.log. The
+rule: MANTRA_MANIFEST modules/resolve-router.md.

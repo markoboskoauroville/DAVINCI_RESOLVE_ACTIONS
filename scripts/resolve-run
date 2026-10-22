@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""
+resolve-run: a call into DaVinci Resolve through the router (resolve_router.py, inside DaVinci Resolve Actions), so no
+two apps or sessions ever talk to Resolve at once. Marko, 22.10.2026.
+
+    resolve-run --who elevate script.py [args]     the file runs with  resolve, project, pm  given; it may set  result
+    resolve-run --who elevate -c "result = project.GetName()"
+    resolve-run status                             ready / busy, the page, who runs what, who holds it, the last calls
+    resolve-run hold elevate 5                     only elevate's jobs for 5 minutes (page switches still go)
+    resolve-run release elevate
+    resolve-run open color
+
+Options: --plain (only what the script printed), --timeout S (the call, default 60), --wait S (while Resolve is busy or held, try again for S seconds).
+Exit: 0 done, 1 the code failed, 2 Resolve busy, 3 held by another, 4 the router is not running.
+"""
+import json
+import os
+import sys
+import time
+import urllib.error
+import urllib.request
+
+sys.path.insert(0, os.path.expanduser('~/.local/lib/mantra'))
+
+
+def base():
+    try:
+        import ports
+        return ports.url('resolve', 8940)
+    except Exception:                                            # noqa: BLE001
+        return 'http://127.0.0.1:8940'
+
+
+def ask(method, path, body=None, timeout=70):
+    req = urllib.request.Request(base() + path, method=method, data=json.dumps(body).encode() if body is not None else None,
+                                 headers={'Content-Type': 'application/json'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, json.load(r)
+    except urllib.error.HTTPError as e:
+        return e.code, json.load(e)
+    except (urllib.error.URLError, OSError) as e:
+        print('the Resolve router is not running (%s): open DaVinci Resolve Actions (Mantra)' % e, file=sys.stderr)
+        sys.exit(4)
+
+
+def main(a):
+    who, timeout, wait, plain = os.environ.get('RESOLVE_WHO', 'someone'), 60.0, 0.0, False
+    rest = []
+    i = 0
+    while i < len(a):
+        if a[i] == '--who':
+            who = a[i + 1]; i += 2
+        elif a[i] == '--timeout':
+            timeout = float(a[i + 1]); i += 2
+        elif a[i] == '--plain':
+            plain = True; i += 1
+        elif a[i] == '--wait':
+            wait = float(a[i + 1]); i += 2
+        else:
+            rest.append(a[i]); i += 1
+    if not rest or rest[0] in ('-h', '--help'):
+        print(__doc__.strip()); return 0
+    cmd = rest[0]
+    if cmd == 'status':
+        code, b = ask('GET', '/status')
+        print(json.dumps(b, indent=1)); return 0
+    if cmd == 'hold':
+        code, b = ask('POST', '/hold', {'who': rest[1], 'minutes': float(rest[2]) if len(rest) > 2 else 5})
+    elif cmd == 'release':
+        code, b = ask('POST', '/release', {'who': rest[1]})
+    elif cmd == 'open':
+        code, b = ask('POST', '/open', {'who': who, 'page': rest[1]})
+    else:
+        if cmd == '-c':
+            body = {'who': who, 'code': rest[1], 'timeout': timeout}
+        else:
+            body = {'who': who, 'file': os.path.abspath(cmd), 'args': rest[1:], 'timeout': timeout}
+        end = time.time() + wait
+        while True:
+            code, b = ask('POST', '/run', body, timeout=timeout + 30)
+            if code in (503, 423) and time.time() < end:
+                time.sleep(3); continue
+            break
+    if b.get('out'):
+        sys.stdout.write(b['out'])
+    if not plain:
+        print(json.dumps({k: v for k, v in b.items() if k not in ('out', 'trace')}))
+    elif not b.get('ok'):
+        print(b.get('error', 'failed'))
+    if b.get('trace') and not b.get('ok'):
+        sys.stderr.write(b['trace'])
+    return {200: 0, 503: 2, 504: 2, 423: 3}.get(code, 1)
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

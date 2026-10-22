@@ -57,15 +57,17 @@ final class PagesModule: ObservableObject {
     var mru: [String] = (PAGES_FILE.read()["mru"] as? [String]) ?? []
     let hud = HUD()
     var row: [String]?; var lit = 0; var releaseWatch: Timer?
-    var helper: Process?; var helperIn: FileHandle?; var buffer = ""
+    var helper: Process?
     var prefStamp: Date?
     var on = false
 
     init() {
         // a helper left from an app that was killed while it waited inside Resolve's API (it holds Python's lock there,
         // so neither its own checks nor SIGTERM can end it): its parent is launchd now (22.10.2026)
-        let k = Process(); k.executableURL = URL(fileURLWithPath: "/usr/bin/pkill"); k.arguments = ["-9", "-P", "1", "-f", "scripts/pages_helper.py"]
-        try? k.run(); k.waitUntilExit()
+        for name in ["scripts/pages_helper.py", "scripts/resolve_router.py", "Resources/scripts/"] {
+            let k = Process(); k.executableURL = URL(fileURLWithPath: "/usr/bin/pkill"); k.arguments = ["-9", "-P", "1", "-f", name]
+            try? k.run(); k.waitUntilExit()
+        }
         Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in self?.checkPrefs() } }
 
     static func loadRing() -> [String] { let c = PAGES_FILE.read()["ring"] as? [String]; return ORDER.filter { c == nil || c!.contains($0) } }
@@ -86,47 +88,42 @@ final class PagesModule: ObservableObject {
     func resolveCame() { if on { startHelper() } }
     func resolveLeft() { stopHelper(); commit(); current = "none"; helperState = "Resolve is not running" }
 
+    // v6 (22.10.2026): the router (scripts/resolve_router.py) instead of the pages helper. It is the one connection to
+    // Resolve for this app and for every Claude session (resolve-run); this module asks it for the page once a second
+    // and sends it the page to open. A dead router is started again after 5 s.
     func startHelper() {
         guard on, helper?.isRunning != true, resolveApp() != nil else { return }
-        let p = Process(); p.executableURL = URL(fileURLWithPath: PYTHON); p.arguments = ["-u", SCRIPTS + "/pages_helper.py"]
-        let inPipe = Pipe(), outPipe = Pipe(); p.standardInput = inPipe; p.standardOutput = outPipe; p.standardError = FileHandle.nullDevice
+        let p = Process(); p.executableURL = URL(fileURLWithPath: PYTHON); p.arguments = ["-u", SCRIPTS + "/resolve_router.py"]
+        let outPipe = Pipe(); p.standardInput = Pipe(); p.standardOutput = outPipe; p.standardError = FileHandle.nullDevice
         outPipe.fileHandleForReading.readabilityHandler = { [weak self] h in
             let d = h.availableData; if d.isEmpty { return }
-            DispatchQueue.main.async { self?.heardData(d) }
+            let t = String(decoding: d, as: UTF8.self)
+            if let r = t.range(of: "router "), let n = Int(t[r.upperBound...].prefix { $0.isNumber }) { DispatchQueue.main.async { ROUTER_PORT = n } }
         }
         p.terminationHandler = { [weak self] _ in
             DispatchQueue.main.async {
                 guard let self = self else { return }
-                self.helper = nil; self.helperState = "stopped"
-                if self.on && resolveApp() != nil { DispatchQueue.main.asyncAfter(deadline: .now() + 20) { self.startHelper() } }
+                self.helper = nil; self.helperState = "router stopped"
+                if self.on && resolveApp() != nil { DispatchQueue.main.asyncAfter(deadline: .now() + 5) { self.startHelper() } }
             }
         }
-        do { try p.run(); helper = p; helperIn = inPipe.fileHandleForWriting; helperState = "starting" } catch { helperState = "could not start: \(error)" }
+        do { try p.run(); helper = p; helperState = "starting"; log("router started (pid \(p.processIdentifier))") } catch { helperState = "could not start: \(error)" }
+        poller?.invalidate()
+        poller = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.poll() }
     }
+    var poller: Timer?
     func stopHelper() {
-        send("quit"); let p = helper; helper = nil
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { if p?.isRunning == true { p?.terminate() } }
+        poller?.invalidate(); poller = nil
+        let p = helper; helper = nil; p?.terminate()
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { if let p = p, p.isRunning { kill(p.processIdentifier, SIGKILL) } }
     }
-    @discardableResult func send(_ line: String) -> Bool {
-        guard helper?.isRunning == true, let h = helperIn else { return false }
-        h.write(Data((line + "\n").utf8)); return true
-    }
-    func heardData(_ d: Data) {
-        buffer += String(decoding: d, as: UTF8.self)
-        while let r = buffer.firstIndex(of: "\n") {
-            let line = String(buffer[..<r]); buffer = String(buffer[buffer.index(after: r)...]); heard(line)
-        }
-    }
-    func heard(_ line: String) {
-        let parts = line.split(separator: " ", maxSplits: 1).map(String.init)
-        let cmd = parts.first ?? "", arg = parts.count > 1 ? parts[1] : ""
-        switch cmd {
-        case "page": helperState = "connected"; asked = nil; current = arg; if arg != "none" { touch(arg) } else { remember() }
-        case "pages": PAGES_FILE.change { $0["bar"] = arg.split(separator: ",").map(String.init) }
-        case "waiting": if let p = asked { asked = nil; press(p) }; helperState = "waiting for Resolve's API (a project loading, or External scripting not Local)"
-        case "error": said = arg; log("helper: " + arg); if let p = asked { asked = nil; press(p) }
-        default: break
+    func poll() {
+        router("GET", "/page", timeout: 0.8) { [weak self] code, b in
+            guard let self = self, code == 200, let state = b["state"] as? String else { return }
+            self.helperState = state == "ready" ? "connected" : "Resolve is \(state)"
+            if let p = b["page"] as? String, state == "ready", p != self.current, self.row == nil, Date().timeIntervalSince(self.openedAt) > 1.5 {
+                self.current = p; if p != "none" { self.touch(p) }
+            }
         }
     }
     func checkPrefs() {
@@ -135,31 +132,38 @@ final class PagesModule: ObservableObject {
         for case let f as String in e where f.hasSuffix("UI.preset") {
             if let m = (try? FileManager.default.attributesOfItem(atPath: PREFS + "/" + f))?[.modificationDate] as? Date, newest == nil || m > newest! { newest = m }
         }
-        if let n = newest, let p = prefStamp, n > p { send("pages") }
+        if let n = newest, prefStamp == nil || n > prefStamp! {
+            router("GET", "/pages", timeout: 2) { code, b in if let l = b["pages"] as? [String] { PAGES_FILE.change { $0["bar"] = l } } }
+        }
         prefStamp = newest ?? prefStamp
     }
 
-    var asked: String?                       // the page sent to the helper, until it says where Resolve is
+    var openedAt = Date.distantPast
     func open(_ page: String) {
         guard page != current else { return }
-        log("open \(page) (helper \(helperState))")
-        if helperState == "connected" && send("open " + page) {
-            // Resolve's API stalls while Resolve is busy (seen 22.10.2026: 100 % CPU, scriptapp() hung over 25 s): no
-            // answer in 0.6 s and Resolve's own keys go instead
-            asked = page
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
-                guard let self = self, self.asked == page else { return }
-                self.asked = nil; log("no answer from Resolve's API for \(page)"); self.press(page)
+        log("open \(page) (\(helperState))")
+        openedAt = Date()
+        if helperState == "connected" {
+            // the API, through the router; no answer in 0.6 s (Resolve busy, a session's job running) and Resolve's own
+            // keys go instead; the router drops an open older than 1.5 s, so a late one never pulls the page back
+            var done = false
+            router("POST", "/open?page=\(page)&who=pages", timeout: 3) { [weak self] code, b in
+                done = true
+                if code != 200 || (b["result"] as? Bool) != true { log("router: \(code) \(b["error"] ?? "")"); self?.press(page) }
             }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in if !done { done = true; log("no answer from the router for \(page)"); self?.press(page) } }
         } else { press(page) }
         current = page; touch(page)
     }
     // Resolve's own keys for its pages, ⇧2..⇧8, when the API cannot (Resolve is in front: the shortcut fired there)
     func press(_ page: String) {
         guard let k = SHIFTKEY[page], let app = resolveApp() else { said = "no way to reach \(PAGE_NAME[page] ?? page) without external scripting"; return }
-        if !resolveFront() { app.activate() }
-        for down in [true, false] { let e = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(k), keyDown: down); e?.flags = .maskShift; e?.postToPid(app.processIdentifier) }
-        log("pressed ⇧ for \(page)")
+        let post = {
+            for down in [true, false] { let e = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(k), keyDown: down); e?.flags = .maskShift; e?.postToPid(app.processIdentifier) }
+            log("pressed ⇧ for \(page)")
+        }
+        // Resolve takes keys only while it is the active app (LESSONS 4): from the menu it is not, so it comes forward first
+        if resolveFront() { post() } else { app.activate(); DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: post) }
     }
     func previous() { let c = candidates(); if c.count > 1 { open(c[1]) } else { said = "only one page in the ring" } }
 

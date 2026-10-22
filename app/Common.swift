@@ -4,7 +4,7 @@ import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 
-let VERSION = 5
+let VERSION = 6
 let RELEASES = "https://github.com/markoboskoauroville/DAVINCI_RESOLVE_ACTIONS/releases/latest"
 let BUNDLE = "com.blackmagic-design.DaVinciResolve"
 let PYTHON = NSHomeDirectory() + "/.pyenv/versions/3.10.14/bin/python3"
@@ -55,10 +55,27 @@ let SETTINGS = JSONFile("resolve-actions.json")     // which modules are on, the
 func resolveApp() -> NSRunningApplication? { NSRunningApplication.runningApplications(withBundleIdentifier: BUNDLE).first }
 func resolveFront() -> Bool { NSWorkspace.shared.frontmostApplication?.bundleIdentifier == BUNDLE }
 
-// a script run with Resolve's Python from outside (External scripting = Local); the answer is its last line
+// the router (resolve_router.py): the one connection to Resolve, for this app and every Claude session
+var ROUTER_PORT = 8940
+func router(_ method: String, _ path: String, body: [String: Any]? = nil, timeout: Double, then: @escaping (Int, [String: Any]) -> Void) {
+    var req = URLRequest(url: URL(string: "http://127.0.0.1:\(ROUTER_PORT)" + path)!, timeoutInterval: timeout)
+    req.httpMethod = method
+    if let b = body { req.httpBody = try? JSONSerialization.data(withJSONObject: b); req.setValue("application/json", forHTTPHeaderField: "Content-Type") }
+    URLSession.shared.dataTask(with: req) { data, resp, _ in
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+        let b = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
+        DispatchQueue.main.async { then(code, b) }
+    }.resume()
+}
+
+// a script run against Resolve, through the router when it runs (one call at a time, a timeout, "busy" instead of a
+// hang), else with Resolve's Python straight; the answer is its last line
 func runScript(_ name: String, _ args: [String] = [], then: @escaping (Int32, String) -> Void) {
     DispatchQueue.global().async {
-        let p = Process(); p.executableURL = URL(fileURLWithPath: PYTHON); p.arguments = [SCRIPTS + "/" + name] + args
+        let viaRouter = (try? Data(contentsOf: URL(string: "http://127.0.0.1:\(ROUTER_PORT)/health")!)) != nil
+        let p = Process(); p.executableURL = URL(fileURLWithPath: PYTHON)
+        p.arguments = viaRouter ? [SCRIPTS + "/resolve-run", "--who", "actions", "--plain", "--timeout", "30", SCRIPTS + "/" + name] + args
+                                : [SCRIPTS + "/" + name] + args
         let pipe = Pipe(); p.standardOutput = pipe; p.standardError = pipe
         do { try p.run() } catch { DispatchQueue.main.async { then(-1, "\(error)") }; return }
         let out = String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self); p.waitUntilExit()

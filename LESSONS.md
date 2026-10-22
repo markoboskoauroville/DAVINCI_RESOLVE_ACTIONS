@@ -20,3 +20,9 @@
    (the SkyLight lend, spaces); an event tap that asks at the press whether the key goes to Resolve does not.
 7. (22.10.2026) A helper blocked inside a Resolve API call never reaches its getppid() check: when its app is killed it
    stays (found 23406 orphaned in WaitPkt). A Python watchdog thread does not help either: fusionscript keeps the GIL while it waits. The app kills orphans (pkill -9 -P 1) when it starts, and SIGKILLs its helper 2 s after quit.
+8. (22.10.2026) Overwriting media that an open Resolve timeline uses (ffmpeg onto the same .mov) left Resolve's main
+   thread spinning at 100 % for over ten minutes: no API, no keys. Hence the router (one connection, timeouts, busy
+   answered at once) and the rule: new files, then relink.
+9. (22.10.2026) Resolve opens on the screen named in Workspace → Primary Display, not where the window was left. Editing
+   UI.preset's PrimaryScreenIdx with Resolve closed was not enough (it still opened on the MacBook); clicking the menu
+   item through Accessibility worked and Resolve saved it.
