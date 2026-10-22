@@ -4,7 +4,7 @@ import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 
-let VERSION = 4
+let VERSION = 5
 let RELEASES = "https://github.com/markoboskoauroville/DAVINCI_RESOLVE_ACTIONS/releases/latest"
 let BUNDLE = "com.blackmagic-design.DaVinciResolve"
 let PYTHON = NSHomeDirectory() + "/.pyenv/versions/3.10.14/bin/python3"
@@ -111,7 +111,18 @@ struct Chord {
     }
 }
 
-// MARK: hot keys: one Carbon handler, each key a closure; all of them live only while Resolve is in front
+// MARK: hot keys: each key a closure, his only while Resolve is in front
+// v5 (22.10.2026, Marko: "Alt tick doesn't work to change my pages. Sometimes works, sometimes doesn't"): the keys are
+// caught by an event tap that asks, at the moment of the press, whether the key goes to Resolve. Before, Carbon hot keys
+// were registered when Resolve became the active app and dropped when another did, and a switch the notification missed
+// (the J K L lend through SkyLight, a full-screen space) left ⌥` dead in Resolve or caught in another app. Carbon stays
+// only as the fallback while the tap is not allowed (Accessibility).
+
+func log(_ text: String) {
+    let f = NSHomeDirectory() + "/.config/resolve-assistant.log"
+    let line = "\(DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)) actions: \(text)\n"
+    if let h = FileHandle(forWritingAtPath: f) { h.seekToEndOfFile(); h.write(Data(line.utf8)); try? h.close() }
+}
 
 final class HotKeys {
     static let shared = HotKeys()
@@ -119,6 +130,8 @@ final class HotKeys {
     private var actions: [UInt32: () -> Void] = [:]
     private var next: UInt32 = 1
     private var wanted: [(Chord, () -> Void)] = []
+    private var tap: CFMachPort?
+    private var kept: Set<Int64> = []                // keys whose down was ours: their up is ours too
     init() {
         var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         InstallEventHandler(GetApplicationEventTarget(), { _, ev, _ in
@@ -127,10 +140,42 @@ final class HotKeys {
             DispatchQueue.main.async { HotKeys.shared.actions[id.id]?() }
             return noErr
         }, 1, &spec, nil, nil)
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in if HotKeys.shared.tap == nil { HotKeys.shared.startTap() } }
     }
+    var viaTap: Bool { tap != nil }
     // the whole set, said again whenever a module or a shortcut changes
-    func set(_ list: [(Chord, () -> Void)]) { wanted = list; if resolveFront() { arm() } }
+    func set(_ list: [(Chord, () -> Void)]) { wanted = list; startTap(); if resolveFront() { arm() } }
+    func startTap() {
+        guard tap == nil else { return }
+        let mask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+        guard let t = CGEvent.tapCreate(tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
+                                        eventsOfInterest: CGEventMask(mask), callback: { _, type, ev, _ in HotKeys.shared.handle(type, ev) },
+                                        userInfo: nil) else { return }
+        CFRunLoopAddSource(CFRunLoopGetMain(), CFMachPortCreateRunLoopSource(nil, t, 0), .commonModes)
+        CGEvent.tapEnable(tap: t, enable: true); tap = t; disarm(); log("shortcuts by event tap")
+    }
+    func match(_ ev: CGEvent) -> (() -> Void)? {
+        let code = ev.getIntegerValueField(.keyboardEventKeycode)
+        let mods = ev.flags.intersection([.maskCommand, .maskControl, .maskAlternate, .maskShift])
+        return wanted.first { Int64($0.0.key) == code && $0.0.flags == mods }?.1
+    }
+    func toResolve(_ ev: CGEvent) -> Bool {
+        if resolveFront() { return true }
+        let pid = ev.getIntegerValueField(.eventTargetUnixProcessID)
+        return pid != 0 && Int64(resolveApp()?.processIdentifier ?? -1) == pid
+    }
+    private func handle(_ type: CGEventType, _ ev: CGEvent) -> Unmanaged<CGEvent>? {
+        if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput { if let t = tap { CGEvent.tapEnable(tap: t, enable: true) }; return Unmanaged.passUnretained(ev) }
+        let code = ev.getIntegerValueField(.keyboardEventKeycode)
+        if type == .keyUp { return kept.remove(code) != nil ? nil : Unmanaged.passUnretained(ev) }
+        guard let f = match(ev), toResolve(ev) else { return Unmanaged.passUnretained(ev) }
+        kept.insert(code)
+        if ev.getIntegerValueField(.keyboardEventAutorepeat) == 0 { DispatchQueue.main.async(execute: f) }
+        return nil
+    }
+    // Carbon, only while there is no tap
     func arm() {
+        guard tap == nil else { return }
         disarm()
         for (c, f) in wanted {
             var ref: EventHotKeyRef?

@@ -45,4 +45,4 @@ Resolve Pages, UHD HD Display and Import Button; and the `resolve-scripts` repos
 `scripts/`). `scripts/Snap Captions.lua` is a Fusion composition script that runs inside Resolve's Fusion page (Fusion
 speaks Lua); it is kept here with the rest, not run by the app.
 
-Permission: Accessibility, for the event taps of the import button and J K L.
+Permission: Accessibility, for the event taps of the shortcuts (v5: ⌥` and the others are caught at the press, only when the key goes to Resolve), the import button and J K L. Every page press is logged in `~/.config/resolve-assistant.log`; when Resolve is too busy to answer its API in 0.6 s, Resolve's own ⇧2..⇧8 open the page.

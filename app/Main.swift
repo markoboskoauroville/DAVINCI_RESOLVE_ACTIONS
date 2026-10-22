@@ -11,6 +11,10 @@
 // v4 (20.10.2026, Marko: "block JKL keys anywhere in the system, and it will use JKL keys to control the playhead in the
 // Davinci Resolve remotely, being Davinci Resolve in focus or not"): the J K L module (JKL.swift), and its switch in the
 // menu-bar word, so the letters come back in one click.
+// v5 (22.10.2026, Marko: "Alt tick doesn't work to change my pages. Sometimes works, sometimes doesn't"): the shortcuts
+// are caught by an event tap at the moment of the press (Common.swift), the pages helper no longer loses a command that
+// arrived with another, and when Resolve's API cannot open a page Resolve's own ⇧2..⇧8 do. Every press is logged in
+// ~/.config/resolve-assistant.log.
 import SwiftUI
 import AppKit
 

@@ -56,4 +56,9 @@ What goes under it (inventory 13.10.2026):
 
 > Please fix my app Devon the Da Vinci Resolve Actions. There is a bug. Alt tick doesn't work to change my pages. Sometimes works, sometimes doesn't. So I'm confused what is that? You need to debug this application so it works. And eat category in the star menu, please change to Da Vinci Resolve Actions. But there is no need for category. If any category has only one entry. Actually, there should be direct access. If there is more than one, then we go to sub-menus. Fix everything.
 
-1. ⌥` walks the pages every time. — **Status:** debugging.
+1. ⌥` walks the pages every time. — **Status:** v5 built 22.10.2026. Three causes found (LESSONS 6–7): Resolve's API
+   stalls while Resolve is busy (seen: 100 % CPU, every API call hung over 25 s, two old helpers frozen in it), the
+   helper lost a command that arrived with another (proved), and the Carbon hot keys were armed only on app-switch
+   notifications. Now: the shortcut is caught by an event tap at the press, an open unanswered in 0.6 s becomes Resolve's
+   own ⇧2..⇧8, orphaned helpers are killed, every press is logged in ~/.config/resolve-assistant.log. Restarted
+   23405 → 27571. Marko to try ⌥` in Resolve.

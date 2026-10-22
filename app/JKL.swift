@@ -98,6 +98,8 @@ final class JKLModule: ObservableObject {
                 if ready { return Unmanaged.passUnretained(ev) }              // Resolve is active: its own keys
                 if let c = ev.copy() { queue.append(c) }; return nil
             }
+            // a shortcut of ours (⌥` for the pages) is for Resolve, which holds the focus: it stays lent (22.10.2026)
+            if HotKeys.shared.match(ev) != nil { return Unmanaged.passUnretained(ev) }
             // another key: his app gets the focus back and the key with it
             if type == .keyDown, let to = lentFrom, let c = ev.copy() {
                 endLend(giveBack: true)

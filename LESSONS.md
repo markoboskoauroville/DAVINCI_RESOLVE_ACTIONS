@@ -12,3 +12,11 @@
    the focus (_SLPSSetFrontProcessWithOptions with kCPSNoWindows, nothing raised) and give it back.
 5. (20.10.2026) GetProcessForPID is unavailable in Swift; dlsym it from HIServices
    (ApplicationServices.framework/Frameworks/HIServices.framework). dlopen(nil) does not always find it.
+6. (22.10.2026) ⌥` "sometimes works": three causes. (a) Resolve's scripting API stalls while Resolve is busy (100 % CPU:
+   scriptapp() and GetCurrentPage hung over 25 s, also through Resolve's own MCP), and the helper waited with it; now an
+   open unanswered in 0.6 s becomes Resolve's own ⇧2..⇧8. (b) sys.stdin.readline() after select() pulls every waiting
+   line into Python's buffer, where select() no longer sees it: a second command waited for the next one. Read the
+   descriptor with os.read and split lines yourself. (c) Carbon hot keys armed on didActivateApplication miss switches
+   (the SkyLight lend, spaces); an event tap that asks at the press whether the key goes to Resolve does not.
+7. (22.10.2026) A helper blocked inside a Resolve API call never reaches its getppid() check: when its app is killed it
+   stays (found 23406 orphaned in WaitPkt). A Python watchdog thread does not help either: fusionscript keeps the GIL while it waits. The app kills orphans (pkill -9 -P 1) when it starts, and SIGKILLs its helper 2 s after quit.

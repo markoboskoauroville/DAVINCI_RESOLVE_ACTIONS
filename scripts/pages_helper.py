@@ -164,20 +164,39 @@ def current_page(r):
     return (page or 'none').lower()
 
 
+_pending = b''
+
+
 def stdin_line(timeout):
     """One line from the star, or None after timeout; '' when the star closed our stdin."""
     # the app that started us is gone (killed, crashed): our parent is launchd now and stdin may never close,
     # because the child can hold a copy of the pipe's write end; leave as if told to quit (13.10.2026)
     if os.getppid() == 1:
         return ''
-    ready, _, _ = select.select([sys.stdin], [], [], timeout)
-    if not ready:
-        return None
-    return sys.stdin.readline()
+    # read from the descriptor into our own buffer: sys.stdin.readline() swallowed every line that arrived with the
+    # first one into Python's buffer, where select() no longer saw it, so a second "open" waited for the next press
+    # and ⌥` seemed to work only sometimes (22.10.2026)
+    global _pending
+    if b'\n' not in _pending:
+        ready, _, _ = select.select([sys.stdin], [], [], timeout)
+        if not ready:
+            return None
+        chunk = os.read(sys.stdin.fileno(), 4096)
+        if not chunk:
+            return ''
+        _pending += chunk
+        if b'\n' not in _pending:
+            return None
+    line, _, _pending = _pending.partition(b'\n')
+    return line.decode('utf-8', 'replace') + '\n'
+
+
+wanted_page = None                                               # an open asked while the API was not answering
 
 
 def connect():
     """Resolve's API, waiting while Resolve is up but not answering. None when Resolve is gone or we are told to quit."""
+    global wanted_page
     said = False
     while True:
         r = get_resolve()
@@ -191,6 +210,9 @@ def connect():
         line = stdin_line(RECONNECT)
         if line == '' or (line and line.strip() == 'quit'):
             return None
+        if line and line.startswith('open '):
+            wanted_page = line.split(' ', 1)[1].strip().lower()
+            say('error not connected')
 
 
 def serve(r):
@@ -200,6 +222,13 @@ def serve(r):
     if last is None:
         return True
     say('page ' + last)
+    global wanted_page
+    if wanted_page in PAGES and wanted_page != last:
+        try:
+            r.OpenPage(wanted_page)
+        except Exception as e:                                   # noqa: BLE001
+            log('OpenPage(%s) failed: %s' % (wanted_page, e))
+    wanted_page = None
     tick = time.time()
     while True:
         line = stdin_line(POLL)

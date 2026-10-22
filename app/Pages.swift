@@ -61,7 +61,12 @@ final class PagesModule: ObservableObject {
     var prefStamp: Date?
     var on = false
 
-    init() { Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in self?.checkPrefs() } }
+    init() {
+        // a helper left from an app that was killed while it waited inside Resolve's API (it holds Python's lock there,
+        // so neither its own checks nor SIGTERM can end it): its parent is launchd now (22.10.2026)
+        let k = Process(); k.executableURL = URL(fileURLWithPath: "/usr/bin/pkill"); k.arguments = ["-9", "-P", "1", "-f", "scripts/pages_helper.py"]
+        try? k.run(); k.waitUntilExit()
+        Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in self?.checkPrefs() } }
 
     static func loadRing() -> [String] { let c = PAGES_FILE.read()["ring"] as? [String]; return ORDER.filter { c == nil || c!.contains($0) } }
     func saveRing(_ r: [String]) { ring = ORDER.filter { r.contains($0) }; PAGES_FILE.change { $0["ring"] = self.ring } }
@@ -98,7 +103,11 @@ final class PagesModule: ObservableObject {
         }
         do { try p.run(); helper = p; helperIn = inPipe.fileHandleForWriting; helperState = "starting" } catch { helperState = "could not start: \(error)" }
     }
-    func stopHelper() { send("quit"); let p = helper; helper = nil; DispatchQueue.main.asyncAfter(deadline: .now() + 1) { if p?.isRunning == true { p?.terminate() } } }
+    func stopHelper() {
+        send("quit"); let p = helper; helper = nil
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { if p?.isRunning == true { p?.terminate() } }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { if let p = p, p.isRunning { kill(p.processIdentifier, SIGKILL) } }
+    }
     @discardableResult func send(_ line: String) -> Bool {
         guard helper?.isRunning == true, let h = helperIn else { return false }
         h.write(Data((line + "\n").utf8)); return true
@@ -113,10 +122,10 @@ final class PagesModule: ObservableObject {
         let parts = line.split(separator: " ", maxSplits: 1).map(String.init)
         let cmd = parts.first ?? "", arg = parts.count > 1 ? parts[1] : ""
         switch cmd {
-        case "page": helperState = "connected"; current = arg; if arg != "none" { touch(arg) } else { remember() }
+        case "page": helperState = "connected"; asked = nil; current = arg; if arg != "none" { touch(arg) } else { remember() }
         case "pages": PAGES_FILE.change { $0["bar"] = arg.split(separator: ",").map(String.init) }
-        case "waiting": helperState = "waiting for Resolve's API (a project loading, or External scripting not Local)"
-        case "error": said = arg
+        case "waiting": if let p = asked { asked = nil; press(p) }; helperState = "waiting for Resolve's API (a project loading, or External scripting not Local)"
+        case "error": said = arg; log("helper: " + arg); if let p = asked { asked = nil; press(p) }
         default: break
         }
     }
@@ -130,24 +139,43 @@ final class PagesModule: ObservableObject {
         prefStamp = newest ?? prefStamp
     }
 
+    var asked: String?                       // the page sent to the helper, until it says where Resolve is
     func open(_ page: String) {
         guard page != current else { return }
-        if !send("open " + page) {
-            guard let k = SHIFTKEY[page], let app = resolveApp() else { said = "no way to reach \(PAGE_NAME[page] ?? page) without external scripting"; return }
-            app.activate()
-            for down in [true, false] { let e = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(k), keyDown: down); e?.flags = .maskShift; e?.postToPid(app.processIdentifier) }
-        }
+        log("open \(page) (helper \(helperState))")
+        if helperState == "connected" && send("open " + page) {
+            // Resolve's API stalls while Resolve is busy (seen 22.10.2026: 100 % CPU, scriptapp() hung over 25 s): no
+            // answer in 0.6 s and Resolve's own keys go instead
+            asked = page
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                guard let self = self, self.asked == page else { return }
+                self.asked = nil; log("no answer from Resolve's API for \(page)"); self.press(page)
+            }
+        } else { press(page) }
         current = page; touch(page)
+    }
+    // Resolve's own keys for its pages, ⇧2..⇧8, when the API cannot (Resolve is in front: the shortcut fired there)
+    func press(_ page: String) {
+        guard let k = SHIFTKEY[page], let app = resolveApp() else { said = "no way to reach \(PAGE_NAME[page] ?? page) without external scripting"; return }
+        if !resolveFront() { app.activate() }
+        for down in [true, false] { let e = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(k), keyDown: down); e?.flags = .maskShift; e?.postToPid(app.processIdentifier) }
+        log("pressed ⇧ for \(page)")
     }
     func previous() { let c = candidates(); if c.count > 1 { open(c[1]) } else { said = "only one page in the ring" } }
 
     var heldMods: NSEvent.ModifierFlags { (Chord(hotkey)?.cocoa ?? .option).subtracting(.shift) }
-    func held() -> Bool { let h = heldMods; return !h.isEmpty && NSEvent.modifierFlags.intersection([.control, .option, .command]).isSuperset(of: h) }
+    // read from the keyboard's state itself, not from this app's last event
+    func held() -> Bool {
+        let h = heldMods, f = CGEventSource.flagsState(.combinedSessionState)
+        var now: NSEvent.ModifierFlags = []
+        if f.contains(.maskControl) { now.insert(.control) }; if f.contains(.maskAlternate) { now.insert(.option) }; if f.contains(.maskCommand) { now.insert(.command) }
+        return !h.isEmpty && now.isSuperset(of: h)
+    }
     func step(_ dir: Int) {
         if row == nil {
             let c = candidates()
             guard c.count > 1 else { said = "only \(PAGE_NAME[current] ?? "one page") is in the ring"; return }
-            row = c; lit = 0
+            row = c; lit = 0; log("\(hotkey): \(c.joined(separator: " ")), Resolve on \(current)")
             releaseWatch = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in if self?.held() == false { self?.commit() } }
         }
         lit = ((lit + dir) % row!.count + row!.count) % row!.count
