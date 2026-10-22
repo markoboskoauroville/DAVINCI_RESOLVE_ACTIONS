@@ -81,3 +81,5 @@ What goes under it (inventory 13.10.2026):
    it, so every start put Resolve back on the MacBook. — **Status:** done 22.10.2026: Resolve killed, reopened, Primary
    Display set to "BenQ LCD" through its own menu (Accessibility); the window is 0,0 2560×1440 on the BenQ; saved by
    Resolve (UI.preset PrimaryScreenIdx 0, 18:22). Marko: "issue with monitor fixed now".
+
+4. Marko, 22.10.2026: *"confirmed it's working. Give session to other session"*. ⌥` and the page menu confirmed by Marko; Resolve handed to "elevate media local".
