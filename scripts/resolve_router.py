@@ -52,6 +52,25 @@ LIB = '/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusi
 PAGES = ['media', 'cut', 'edit', 'fusion', 'color', 'fairlight', 'deliver', 'photo']
 PROBE = 3           # seconds a probe may take before Resolve counts as busy
 LOOK = 1.0          # seconds between looks at the page while idle
+SYNC_EVERY = 3.0    # seconds between looks at the two frame rates (26.10.2026)
+SYNC_CODE = r'''
+def _n(v):
+    s = str(v or '').strip()
+    try:
+        f = float(s)
+        return ('%d' % f) if f == int(f) else s
+    except ValueError:
+        return s
+result = {'changed': False}
+if project:
+    tl = project.GetCurrentTimeline()
+    own = tl and str(tl.GetSetting('useCustomSettings')) == '1'
+    rate = _n(tl.GetSetting('timelineFrameRate') if own else project.GetSetting('timelineFrameRate'))
+    play = _n(project.GetSetting('timelinePlaybackFrameRate'))
+    if rate and play != rate:
+        ok = bool(project.SetSetting('timelinePlaybackFrameRate', rate))
+        result = {'changed': True, 'ok': ok, 'was': play, 'now': rate, 'project': project.GetName()}
+'''
 MAX_LOG = 512 * 1024
 
 
@@ -246,9 +265,30 @@ class Router:
                 self.set_state('busy')
             elif ans.get('ok'):
                 self.page = ans['result']
+                if time.time() - getattr(self, '_synced', 0) > SYNC_EVERY:
+                    self._synced = time.time()
+                    self.sync_playback_rate()
         elif time.time() - getattr(self, '_probed', 0) > 3:
             self._probed = time.time()
             self.probe()
+
+    def sync_playback_rate(self):
+        """THE PLAYBACK RATE FOLLOWS THE PROJECT'S (26.10.2026, Marko: "When I change the frame rate of the project, the
+        playback frame rate stays in manual mode ... I always need to go in Settings and change the playback rate
+        manually ... the dropping sound. Things become unsynchronized ... synchronize these two settings always").
+        Every SYNC_EVERY seconds while Resolve is idle: the rate of what is open — the timeline's own when it has custom
+        settings, else the project's — and Master Settings' playback frame rate set to it when they differ."""
+        ans = self.call({'kind': 'run', 'who': 'fps-sync', 'code': SYNC_CODE}, PROBE + 2)
+        if ans and ans.get('ok') and ans.get('result') and ans['result'].get('changed'):
+            res = ans['result']
+            # MEASURED 26.10.2026: Resolve refuses SetSetting('timelinePlaybackFrameRate') in every form — the stub says
+            # "Read-only". A refusal is logged once per project and rate, not every SYNC_EVERY seconds.
+            key = (res.get('project'), res.get('now'))
+            if res.get('ok') or key not in getattr(self, '_refused', set()):
+                log('fps-sync %s: playback %s -> %s (%s)' % (res.get('project'), res.get('was'), res.get('now'),
+                                                            'ok' if res.get('ok') else 'REFUSED: read-only in the API'))
+            if not res.get('ok'):
+                self._refused = getattr(self, '_refused', set()) | {key}
 
     def note(self, job, outcome, seconds):
         what = job['kind'] if job['kind'] != 'run' else 'run ' + (os.path.basename(job.get('file') or '') or 'code')
