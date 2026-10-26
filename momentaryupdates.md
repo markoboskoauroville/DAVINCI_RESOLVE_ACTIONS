@@ -83,3 +83,9 @@ What goes under it (inventory 13.10.2026):
    Resolve (UI.preset PrimaryScreenIdx 0, 18:22). Marko: "issue with monitor fixed now".
 
 4. Marko, 22.10.2026: *"confirmed it's working. Give session to other session"*. ⌥` and the page menu confirmed by Marko; Resolve handed to "elevate media local".
+
+## 26.10.2026 — the playback frame rate follows the project's
+
+> "that reminds me that we need to update my helper for DaVinci Resolve. When I change the frame rate of the project, the playback frame rate stays in manual mode. It doesn't follow up. Usually, my project is at 30 fps. It's at 25, then I change it to 30. Then my next project is in 25, and I always need to go in Settings and change the playback rate manually. I have the same exact same problem with my DaVinci Resolve and the dropping sound. Things become unsynchronized. It's nonsense. I don't know why they have two settings, but synchronize these two settings always" (Marko, 26.10.2026)
+
+- Resolve's playback frame rate always equals the project's (timeline) frame rate, in every project, at every change; the sound drops and the loss of sync that the mismatch causes go with it. — **Status:** asked.
