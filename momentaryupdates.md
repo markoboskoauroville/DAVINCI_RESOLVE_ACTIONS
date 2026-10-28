@@ -111,3 +111,5 @@ Please work in DaVinci Resolve color space and export as 709 workspace, and don'
 "any changes you are making to the image exposure? Use the Curves only. Curves and everything you need to do inside the Color page. I want to see all nodes. Everything you are doing, one node, one correction"
 
 "When the we finish the project, then you're going to put this in the application. For now we need to find the right workflow."
+
+"for this kind of workflow, I need a tutorial, the same as we are doing for mixing inside Ableton Live. Same style of the tutorial. See the repositories and understand how it's done. Make lifestyle images and diagrams to understand what it is. You can use Nano Banana in Chrome or Grok in Chrome, whatever. Make a nice tutorial for this workflow. You need to guide me how to set up the whole thing, so in the future I can just press \"Action\" and everything is happening automatically"
