@@ -99,3 +99,5 @@ What goes under it (inventory 13.10.2026):
 "please burn in this workflow inside the DaVinci Resolve workflows. It is called \"Balancing, Grading, and Exporting Automatic.\" Next time, I don't need to use the UAI tool. I just press a button and everything is happening automatically"
 
 "I have a tool in a star menu called \"DaVinci Resolve Actions.\" Inside, put this action and make a tab for Actions. Please redesign the user interface for this application with tabs and group different styles of working. This is Actions"
+
+"after color grade, apply the look from Kodak stock build-in. Use the build-in effect film look"
