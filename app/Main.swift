@@ -140,6 +140,7 @@ struct SettingsView: View {
     @ObservedObject var importer: ImportModule
     @ObservedObject var actions: ActionsModule
     @ObservedObject var jkl: JKLModule
+    @State var tab = SETTINGS.read()["tab"] as? String ?? "ACTIONS"
     var body: some View {
         VStack(spacing: 0) {
         // v3 (19.10.2026): ON / OFF first, above the scrolling modules; the ✕ at the far right closes the window only
@@ -153,6 +154,14 @@ struct SettingsView: View {
                     .frame(width: 30, height: 30).contentShape(Rectangle())
             }.buttonStyle(.plain).help("Close the window (DaVinci Resolve Actions stays ON)")
         }.padding(.leading, 24).padding(.trailing, 12).padding(.top, 10).padding(.bottom, 4)
+        // v8 (28.10.2026, Marko: "make a tab for Actions ... redesign the user interface for this application with tabs
+        // and group different styles of working"): ACTIONS (the one-button jobs, in groups), NAVIGATE (pages, J K L),
+        // PROJECT (HD / UHD, the import button). The tab is kept in resolve-actions.json.
+        HStack(spacing: 2) {
+            ForEach(TABS, id: \.self) { t in Word(text: t, on: tab == t) { tab = t; SETTINGS.change { $0["tab"] = t } } }
+            Spacer()
+        }.padding(.horizontal, 18).padding(.bottom, 4)
+        Divider()
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
@@ -160,6 +169,28 @@ struct SettingsView: View {
                     Spacer()
                     Text(resolveApp() == nil ? "NOT RUNNING" : "RUNNING").font(.system(size: 13, weight: .bold, design: .monospaced)).foregroundColor(resolveApp() == nil ? GREY : GREEN)
                 }
+                if tab == "ACTIONS" {
+                // THE ONE-BUTTON ACTIONS, v8: in groups, one per way of working
+                HStack { Spacer(); Word(text: "INSTALL INTO RESOLVE'S MENU", on: false) { actions.installIntoResolve() } }
+                ForEach(actions.groups, id: \.self) { g in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(g).font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(.white)
+                        ForEach(actions.list.filter { ($0.group ?? "OTHER") == g }) { a in
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack {
+                                    Word(text: (actions.running == a.id ? "… " : "▶ ") + a.name.uppercased(), on: actions.running == a.id) { actions.run(a) }
+                                    Spacer()
+                                    KeyField(placeholder: "shortcut", text: actions.hotkeys[a.id] ?? "") { let ok = actions.setHotkey(a, $0); u.rebindKeys(); return ok }
+                                }
+                                if let about = a.about { Small(text: about) }
+                            }
+                        }
+                    }
+                    Divider()
+                }
+                if !actions.said.isEmpty { Text(actions.said).font(.system(size: 12, design: .monospaced)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true) }
+                Small(text: "A new action: a script in the app's scripts folder and one line in actions.json (its group is its section). Shortcuts work while Resolve is in front.")
+                } else if tab == "NAVIGATE" {
                 // PAGES
                 VStack(alignment: .leading, spacing: 8) {
                     ModuleHead(title: "PAGES", on: u.on["pages"]!, set: { u.setModule("pages", $0) }, value: (PAGE_NAME[pages.current] ?? pages.current).uppercased())
@@ -179,6 +210,19 @@ struct SettingsView: View {
                     }
                 }
                 Divider()
+                // J K L
+                VStack(alignment: .leading, spacing: 8) {
+                    ModuleHead(title: "J K L", on: u.on["jkl"]!, set: { u.setModule("jkl", $0) }, value: "→ RESOLVE")
+                    if u.on["jkl"]! {
+                        Small(text: "J, K and L (alone or with ⇧) play, stop and shuttle Resolve from any app; that app never sees them. Resolve takes the focus for them without coming forward and gives it back \(String(format: "%.1f", FOCUS_BACK)) s after the last one, or at once on any other key. With ⌘ ⌃ ⌥ they stay normal letters.")
+                        if !jkl.tapOK {
+                            Text("Accessibility: not allowed yet. System Settings → Privacy & Security → Accessibility → DaVinci Resolve Actions (Mantra) on.")
+                                .font(.system(size: 11)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true)
+                        }
+                        if !jkl.said.isEmpty { Small(text: jkl.said) }
+                    }
+                }
+                } else {
                 // HD / UHD
                 VStack(alignment: .leading, spacing: 8) {
                     ModuleHead(title: "HD / UHD", on: u.on["display"]!, set: { u.setModule("display", $0) }, value: display.mode)
@@ -202,45 +246,17 @@ struct SettingsView: View {
                         if !importer.said.isEmpty { Small(text: importer.said) }
                     }
                 }
-                Divider()
-                // J K L
-                VStack(alignment: .leading, spacing: 8) {
-                    ModuleHead(title: "J K L", on: u.on["jkl"]!, set: { u.setModule("jkl", $0) }, value: "→ RESOLVE")
-                    if u.on["jkl"]! {
-                        Small(text: "J, K and L (alone or with ⇧) play, stop and shuttle Resolve from any app; that app never sees them. Resolve takes the focus for them without coming forward and gives it back \(String(format: "%.1f", FOCUS_BACK)) s after the last one, or at once on any other key. With ⌘ ⌃ ⌥ they stay normal letters.")
-                        if !jkl.tapOK {
-                            Text("Accessibility: not allowed yet. System Settings → Privacy & Security → Accessibility → DaVinci Resolve Actions (Mantra) on.")
-                                .font(.system(size: 11)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true)
-                        }
-                        if !jkl.said.isEmpty { Small(text: jkl.said) }
-                    }
-                }
-                Divider()
-                // THE ONE-BUTTON ACTIONS
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack { Text("ONE-BUTTON ACTIONS").font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(.white); Spacer()
-                             Word(text: "INSTALL INTO RESOLVE'S MENU", on: false) { actions.installIntoResolve() } }
-                    ForEach(actions.list) { a in
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Word(text: (actions.running == a.id ? "… " : "▶ ") + a.name.uppercased(), on: actions.running == a.id) { actions.run(a) }
-                                Spacer()
-                                KeyField(placeholder: "shortcut", text: actions.hotkeys[a.id] ?? "") { let ok = actions.setHotkey(a, $0); u.rebindKeys(); return ok }
-                            }
-                            if let about = a.about { Small(text: about) }
-                        }
-                    }
-                    if !actions.said.isEmpty { Text(actions.said).font(.system(size: 12, design: .monospaced)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true) }
-                    Small(text: "A new action: a script in the app's scripts folder and one line in actions.json. Shortcuts work while Resolve is in front.")
                 }
                 HStack { Spacer(); Text("v\(VERSION)").font(.system(size: 11, design: .monospaced)).foregroundColor(GREY).onTapGesture { NSWorkspace.shared.open(URL(string: RELEASES)!) } }
             }
             .padding(24)
         }
         }
-        .frame(width: 600, height: 760).background(INK).preferredColorScheme(.dark)
+        .frame(minWidth: 560, idealWidth: 640, maxWidth: .infinity, minHeight: 480, idealHeight: 760, maxHeight: .infinity).background(INK).preferredColorScheme(.dark)
     }
 }
+
+let TABS = ["ACTIONS", "NAVIGATE", "PROJECT"]
 
 // made after launch: a status item needs a running NSApplication
 let UMBRELLA = Umbrella()
@@ -267,6 +283,6 @@ final class Delegate: NSObject, NSApplicationDelegate {
     var body: some Scene {
         WindowGroup("DaVinci Resolve Actions (Mantra)") {
             SettingsView(u: UMBRELLA, pages: UMBRELLA.pages, display: UMBRELLA.display, importer: UMBRELLA.importer, actions: UMBRELLA.actions, jkl: UMBRELLA.jkl)
-        }.windowResizability(.contentSize)
+        }.windowResizability(.contentMinSize)
     }
 }

@@ -7,6 +7,7 @@ import Foundation
 struct Action: Identifiable, Decodable {
     let id: String; let name: String; let script: String
     var args: [String]? = nil; var about: String? = nil; var menu: Bool? = nil
+    var group: String? = nil; var timeout: Int? = nil     // v8: the tab section it sits in; seconds the router allows it
 }
 
 final class ActionsModule: ObservableObject {
@@ -25,7 +26,7 @@ final class ActionsModule: ObservableObject {
     func run(_ a: Action) {
         guard resolveApp() != nil else { said = "\(a.name): Resolve is not running"; return }
         running = a.id; said = "\(a.name)…"
-        runScript(a.script, a.args ?? []) { code, line in
+        runScript(a.script, a.args ?? [], timeout: a.timeout ?? 30) { code, line in
             self.running = nil
             self.said = "\(a.name): " + (line.isEmpty ? (code == 0 ? "done" : "failed (\(code))") : line)
         }
@@ -40,6 +41,8 @@ final class ActionsModule: ObservableObject {
         }
         said = v.isEmpty ? "\(a.name): no shortcut" : "\(a.name): \(v)"; return true
     }
+    // v8: the groups in the order they first appear in actions.json
+    var groups: [String] { var seen: [String] = []; for a in list { let g = a.group ?? "OTHER"; if !seen.contains(g) { seen.append(g) } }; return seen }
     func keys() -> [(Chord, () -> Void)] {
         list.compactMap { a in hotkeys[a.id].flatMap(Chord.init).map { c in (c, { [weak self] in self?.run(a) }) } }
     }

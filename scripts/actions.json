@@ -1,13 +1,45 @@
 {
- "note": "The one-button actions of DaVinci Resolve Actions. A new action is a script in this folder and one entry here: id, name, script, args (optional), about, menu (true: also installed into Resolve's Workspace › Scripts › Utility). The app runs it with Resolve's Python from outside (External scripting = Local); its last printed line is shown. Shortcuts are his, set in the window, kept in ~/.config/resolve-actions.json.",
+ "note": "The one-button actions of DaVinci Resolve Actions. A new action is a script in this folder and one entry here: id, name, script, args (optional), about, menu (true: also installed into Resolve's Workspace › Scripts › Utility). The app runs it with Resolve's Python from outside (External scripting = Local); its last printed line is shown. Shortcuts are his, set in the window, kept in ~/.config/resolve-actions.json. v8 (28.10.2026): group = the section of the ACTIONS tab; timeout = seconds the router allows it (default 30).",
  "actions": [
-  {"id": "create-timeline", "name": "Create Timeline", "script": "Create Timeline.py", "menu": true,
-   "about": "A new timeline from the clips selected in the Media Pool, named after the first clip, nothing asked."},
-  {"id": "previous-page", "name": "Previous Page", "script": "Previous Page.py", "menu": true,
-   "about": "Back to the page used before this one; twice and you are back."},
-  {"id": "toggle-hd-uhd", "name": "Toggle HD / UHD", "script": "Toggle HD UHD.py", "menu": true,
-   "about": "The project (and a timeline with its own settings) flips between 1920x1080 and 3840x2160."},
-  {"id": "check", "name": "Check everything", "script": "check.py",
-   "about": "Is Resolve up, does its API answer, which project, resolution, page, pages in the bar, scripts installed and current."}
+  {
+   "id": "balance-grade-export",
+   "name": "Balancing, Grading, and Exporting Automatic",
+   "script": "Balancing Grading Exporting Automatic.py",
+   "group": "COLOR AND EXPORT",
+   "timeout": 900,
+   "menu": true,
+   "about": "The open timeline: input colour from the Sony XML (S-Log3/S-Gamut3.Cine), every shot balanced to the others (70 %, at most 1.5 stops), the Mantra Filmic look on the group, then each clip rendered alone as MP4 H.264 1920x1080 20 Mb/s into FOR SVEMIR HD H264 beside the footage."
+  },
+  {
+   "id": "create-timeline",
+   "name": "Create Timeline",
+   "script": "Create Timeline.py",
+   "menu": true,
+   "about": "A new timeline from the clips selected in the Media Pool, named after the first clip, nothing asked.",
+   "group": "TIMELINE"
+  },
+  {
+   "id": "previous-page",
+   "name": "Previous Page",
+   "script": "Previous Page.py",
+   "menu": true,
+   "about": "Back to the page used before this one; twice and you are back.",
+   "group": "TIMELINE"
+  },
+  {
+   "id": "toggle-hd-uhd",
+   "name": "Toggle HD / UHD",
+   "script": "Toggle HD UHD.py",
+   "menu": true,
+   "about": "The project (and a timeline with its own settings) flips between 1920x1080 and 3840x2160.",
+   "group": "PROJECT"
+  },
+  {
+   "id": "check",
+   "name": "Check everything",
+   "script": "check.py",
+   "about": "Is Resolve up, does its API answer, which project, resolution, page, pages in the bar, scripts installed and current.",
+   "group": "CHECK"
+  }
  ]
 }

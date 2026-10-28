@@ -101,3 +101,9 @@ What goes under it (inventory 13.10.2026):
 "I have a tool in a star menu called \"DaVinci Resolve Actions.\" Inside, put this action and make a tab for Actions. Please redesign the user interface for this application with tabs and group different styles of working. This is Actions"
 
 "after color grade, apply the look from Kodak stock build-in. Use the build-in effect film look"
+
+"your color grading is wrong. You need to balance the shot, right? First of all, you have burnout in some shots. There is burnout, so you need to pay attention to the highlights. Highlights should not be burned out, and the whole image should be balanced.
+
+Please work in DaVinci Resolve color space and export as 709 workspace, and don't make anything a clip"
+
+"final grade. Make it with the film look plugin The film, whatever the name is."
