@@ -107,3 +107,7 @@ What goes under it (inventory 13.10.2026):
 Please work in DaVinci Resolve color space and export as 709 workspace, and don't make anything a clip"
 
 "final grade. Make it with the film look plugin The film, whatever the name is."
+
+"any changes you are making to the image exposure? Use the Curves only. Curves and everything you need to do inside the Color page. I want to see all nodes. Everything you are doing, one node, one correction"
+
+"When the we finish the project, then you're going to put this in the application. For now we need to find the right workflow."
