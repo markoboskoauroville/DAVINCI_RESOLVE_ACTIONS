@@ -9,6 +9,7 @@ struct Action: Identifiable, Decodable {
     var args: [String]? = nil; var about: String? = nil; var menu: Bool? = nil
     var group: String? = nil; var timeout: Int? = nil     // v8: the tab section it sits in; seconds the router allows it
     var steps: [String]? = nil                            // v9: the step titles, shown before the run (the script's step() calls)
+    var tab: String? = nil                                // v10: "MODS" for a change to how Resolve itself works, else ACTIONS
 }
 
 // v9 (28.10.2026, Marko: "Every action should have a play button, a next button (in this case, a "Next Step" button), a
@@ -130,6 +131,10 @@ final class ActionsModule: ObservableObject {
     }
     // v8: the groups in the order they first appear in actions.json
     var groups: [String] { var seen: [String] = []; for a in list { let g = a.group ?? "OTHER"; if !seen.contains(g) { seen.append(g) } }; return seen }
+    // v10 (28.10.2026, Marko: "we have only one action ... These are all modifications of the [functionality] of DaVinci
+    // Resolve. Please put them in Mods"): the tab an action sits in, ACTIONS unless actions.json says MODS
+    func inTab(_ t: String) -> [Action] { list.filter { ($0.tab ?? "ACTIONS") == t } }
+    func groups(_ t: String) -> [String] { var seen: [String] = []; for a in inTab(t) { let g = a.group ?? "OTHER"; if !seen.contains(g) { seen.append(g) } }; return seen }
     func keys() -> [(Chord, () -> Void)] {
         list.compactMap { a in hotkeys[a.id].flatMap(Chord.init).map { c in (c, { [weak self] in self?.run(a) }) } }
     }

@@ -197,13 +197,13 @@ struct SettingsView: View {
                     Spacer()
                     Text(resolveApp() == nil ? "NOT RUNNING" : "RUNNING").font(.system(size: 13, weight: .bold, design: .monospaced)).foregroundColor(resolveApp() == nil ? GREY : GREEN)
                 }
-                if tab == "ACTIONS" {
+                if tab == "ACTIONS" || tab == "MODS" {
                 // THE ONE-BUTTON ACTIONS, v8: in groups, one per way of working
                 HStack { Spacer(); Word(text: "INSTALL INTO RESOLVE'S MENU", on: false) { actions.installIntoResolve() } }
-                ForEach(actions.groups, id: \.self) { g in
+                ForEach(actions.groups(tab), id: \.self) { g in
                     VStack(alignment: .leading, spacing: 10) {
                         Text(g).font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(.white)
-                        ForEach(actions.list.filter { ($0.group ?? "OTHER") == g }) { a in
+                        ForEach(actions.inTab(tab).filter { ($0.group ?? "OTHER") == g }) { a in
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
                                     Text(a.name.uppercased()).font(.system(size: 13, weight: .bold, design: .monospaced))
@@ -228,7 +228,7 @@ struct SettingsView: View {
                     Divider()
                 }
                 if !actions.said.isEmpty { Text(actions.said).font(.system(size: 12, design: .monospaced)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true) }
-                Small(text: "A new action: a script in the app's scripts folder and one line in actions.json (its group is its section). Shortcuts work while Resolve is in front.")
+                Small(text: "A new action or mod: a script in the app's scripts folder and one line in actions.json (its group is its section; "tab": "MODS" puts it in MODS). Shortcuts work while Resolve is in front.")
                 } else if tab == "NAVIGATE" {
                 // PAGES
                 VStack(alignment: .leading, spacing: 8) {
@@ -295,7 +295,7 @@ struct SettingsView: View {
     }
 }
 
-let TABS = ["ACTIONS", "NAVIGATE", "PROJECT"]
+let TABS = ["ACTIONS", "MODS", "NAVIGATE", "PROJECT"]
 
 // made after launch: a status item needs a running NSApplication
 let UMBRELLA = Umbrella()

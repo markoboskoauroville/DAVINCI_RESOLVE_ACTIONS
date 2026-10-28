@@ -1,5 +1,10 @@
 # TAKEOVER
 
+**28.10.2026, v10: a MODS tab.** Marko: "we have only one action: Color and Export ... These are all modifications of the
+[functionality] of DaVinci Resolve. Please put them in Mods." Tabs: ACTIONS (only Balancing, Grading, and Exporting
+Automatic), MODS (Create Timeline, Previous Page, Toggle HD / UHD, Check everything), NAVIGATE, PROJECT. The tab is
+`"tab": "MODS"` in actions.json (none means ACTIONS). Both tabs seen in window captures.
+
 **28.10.2026, v9: every action is played, stepped, stopped, restarted.** Marko: "Every action should have a play button,
 a next button ("Next Step"), a stop button, and a restart button" and "a status line for each step, the title of the step".
 - Each action has ▶ PLAY, ⏭ NEXT STEP, ■ STOP, ↻ RESTART. While it runs (or after), a box under it shows the run's state
