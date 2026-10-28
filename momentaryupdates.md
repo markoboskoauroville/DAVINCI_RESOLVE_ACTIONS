@@ -125,3 +125,11 @@ Please work in DaVinci Resolve color space and export as 709 workspace, and don'
 > please also fix my DaVinci Resolve action mantra application. Every action should have a play button, a next button (in this case, a "Next Step" button), a stop button, and a restart button. When I start an action, I still have control over how I run it
 
 > also, there should be a status line for each step, the title of the step, and I can press Next. If I press Play, I see what's going on. That's all
+
+## 28.10.2026: a MODS tab
+
+> please fix my DaVinci Resolve actions mantra. Actually, we have only one action: Color and Export Timeline Project. Check. These are all modifications of the Functioniko Ebleton of DaVinci Resolve. Please put them in Mods. Inside Actions, we have only one, so the new tab is called Mods
+
+Read as: ACTIONS holds only "Balancing, Grading, and Exporting Automatic" (COLOR AND EXPORT); TIMELINE (Create Timeline,
+Previous Page), PROJECT (Toggle HD / UHD) and CHECK (Check everything) are modifications of DaVinci Resolve's
+functionality and go into a new tab MODS.
