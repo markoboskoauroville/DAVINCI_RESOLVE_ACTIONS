@@ -168,7 +168,7 @@ struct SettingsView: View {
     @ObservedObject var importer: ImportModule
     @ObservedObject var actions: ActionsModule
     @ObservedObject var jkl: JKLModule
-    @State var tab = SETTINGS.read()["tab"] as? String ?? "ACTIONS"
+    @State var tab = (SETTINGS.read()["tab"] as? String).map { $0 == "ACTIONS" ? "ACTIONS" : "MODS" } ?? "ACTIONS"   // NAVIGATE / PROJECT of v8-v10 are MODS now
     var body: some View {
         VStack(spacing: 0) {
         // v3 (19.10.2026): ON / OFF first, above the scrolling modules; the ✕ at the far right closes the window only
@@ -197,7 +197,9 @@ struct SettingsView: View {
                     Spacer()
                     Text(resolveApp() == nil ? "NOT RUNNING" : "RUNNING").font(.system(size: 13, weight: .bold, design: .monospaced)).foregroundColor(resolveApp() == nil ? GREY : GREEN)
                 }
-                if tab == "ACTIONS" || tab == "MODS" {
+                // v10 (28.10.2026, Marko: "Actions and Mods are two only tabs. Navigate and Projects are under Mods"):
+                // ACTIONS is the one action; MODS is the mod actions, then the pages, J K L, HD / UHD and the import button
+                Group {
                 // THE ONE-BUTTON ACTIONS, v8: in groups, one per way of working
                 HStack { Spacer(); Word(text: "INSTALL INTO RESOLVE'S MENU", on: false) { actions.installIntoResolve() } }
                 ForEach(actions.groups(tab), id: \.self) { g in
@@ -228,8 +230,10 @@ struct SettingsView: View {
                     Divider()
                 }
                 if !actions.said.isEmpty { Text(actions.said).font(.system(size: 12, design: .monospaced)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true) }
-                Small(text: "A new action or mod: a script in the app's scripts folder and one line in actions.json (its group is its section; "tab": "MODS" puts it in MODS). Shortcuts work while Resolve is in front.")
-                } else if tab == "NAVIGATE" {
+                Small(text: "A new action or mod: a script in the app's scripts folder and one line in actions.json (its group is its section; a tab of MODS puts it here in MODS). Shortcuts work while Resolve is in front.")
+                }
+                if tab == "MODS" {
+                Divider()
                 // PAGES
                 VStack(alignment: .leading, spacing: 8) {
                     ModuleHead(title: "PAGES", on: u.on["pages"]!, set: { u.setModule("pages", $0) }, value: (PAGE_NAME[pages.current] ?? pages.current).uppercased())
@@ -261,7 +265,7 @@ struct SettingsView: View {
                         if !jkl.said.isEmpty { Small(text: jkl.said) }
                     }
                 }
-                } else {
+                Divider()
                 // HD / UHD
                 VStack(alignment: .leading, spacing: 8) {
                     ModuleHead(title: "HD / UHD", on: u.on["display"]!, set: { u.setModule("display", $0) }, value: display.mode)
@@ -295,7 +299,7 @@ struct SettingsView: View {
     }
 }
 
-let TABS = ["ACTIONS", "MODS", "NAVIGATE", "PROJECT"]
+let TABS = ["ACTIONS", "MODS"]
 
 // made after launch: a status item needs a running NSApplication
 let UMBRELLA = Umbrella()

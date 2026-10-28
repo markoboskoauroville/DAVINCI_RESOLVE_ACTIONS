@@ -2,8 +2,10 @@
 
 **28.10.2026, v10: a MODS tab.** Marko: "we have only one action: Color and Export ... These are all modifications of the
 [functionality] of DaVinci Resolve. Please put them in Mods." Tabs: ACTIONS (only Balancing, Grading, and Exporting
-Automatic), MODS (Create Timeline, Previous Page, Toggle HD / UHD, Check everything), NAVIGATE, PROJECT. The tab is
-`"tab": "MODS"` in actions.json (none means ACTIONS). Both tabs seen in window captures.
+Automatic) and MODS, the only two tabs (Marko: "Actions and Mods are two only tabs. Navigate and Projects are under
+Mods"). MODS: Create Timeline, Previous Page, Toggle HD / UHD, Check everything, then PAGES, J K L, HD / UHD and the
+IMPORT BUTTON. An action's tab is `"tab": "MODS"` in actions.json (none means ACTIONS); a saved NAVIGATE or PROJECT tab
+opens as MODS. Both tabs seen in window captures. (A first v10 push had a broken Swift string in the bottom hint; fixed.)
 
 **28.10.2026, v9: every action is played, stepped, stopped, restarted.** Marko: "Every action should have a play button,
 a next button ("Next Step"), a stop button, and a restart button" and "a status line for each step, the title of the step".

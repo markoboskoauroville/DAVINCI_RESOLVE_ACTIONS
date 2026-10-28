@@ -133,3 +133,5 @@ Please work in DaVinci Resolve color space and export as 709 workspace, and don'
 Read as: ACTIONS holds only "Balancing, Grading, and Exporting Automatic" (COLOR AND EXPORT); TIMELINE (Create Timeline,
 Previous Page), PROJECT (Toggle HD / UHD) and CHECK (Check everything) are modifications of DaVinci Resolve's
 functionality and go into a new tab MODS.
+
+> Actions and Mods are two only tabs. Navigate and Projects are under Mods, actually
