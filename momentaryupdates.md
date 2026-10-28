@@ -93,3 +93,9 @@ What goes under it (inventory 13.10.2026):
 > "for davinci, save the preset per frame rate" (Marko, 26.10.2026)
 
 - The answer to the two ways (presets per rate, or the Project Settings dialog): a project-settings preset per frame rate, so the playback rate comes with the rate. — **Status:** asked.
+
+## 28.10.2026
+
+"please burn in this workflow inside the DaVinci Resolve workflows. It is called \"Balancing, Grading, and Exporting Automatic.\" Next time, I don't need to use the UAI tool. I just press a button and everything is happening automatically"
+
+"I have a tool in a star menu called \"DaVinci Resolve Actions.\" Inside, put this action and make a tab for Actions. Please redesign the user interface for this application with tabs and group different styles of working. This is Actions"
