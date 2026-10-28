@@ -119,3 +119,9 @@ Please work in DaVinci Resolve color space and export as 709 workspace, and don'
 "continue with Gemini working Gemini refused multiple times to grow."
 
 "please call me in voice if you need some actions from me"
+
+## 28.10.2026: every action with play, next step, stop, restart
+
+> please also fix my DaVinci Resolve action mantra application. Every action should have a play button, a next button (in this case, a "Next Step" button), a stop button, and a restart button. When I start an action, I still have control over how I run it
+
+> also, there should be a status line for each step, the title of the step, and I can press Next. If I press Play, I see what's going on. That's all
