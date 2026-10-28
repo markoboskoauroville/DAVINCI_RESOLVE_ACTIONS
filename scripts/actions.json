@@ -1,5 +1,5 @@
 {
- "note": "The one-button actions of DaVinci Resolve Actions. A new action is a script in this folder and one entry here: id, name, script, args (optional), about, menu (true: also installed into Resolve's Workspace › Scripts › Utility). The app runs it with Resolve's Python from outside (External scripting = Local); its last printed line is shown. Shortcuts are his, set in the window, kept in ~/.config/resolve-actions.json. v8 (28.10.2026): group = the section of the ACTIONS tab; timeout = seconds the router allows it (default 30).",
+ "note": "The one-button actions of DaVinci Resolve Actions. A new action is a script in this folder and one entry here: id, name, script, args (optional), about, menu (true: also installed into Resolve's Workspace › Scripts › Utility). The app runs it with Resolve's Python from outside (External scripting = Local); its last printed line is shown. Shortcuts are his, set in the window, kept in ~/.config/resolve-actions.json. v8 (28.10.2026): group = the section of the ACTIONS tab; timeout = seconds the router allows it (default 30). v9 (28.10.2026): steps = the step titles of a script that marks its steps with steps.py, so PLAY / NEXT STEP / STOP / RESTART reach it and each step has its status line; an action without steps is one step.",
  "actions": [
   {
    "id": "balance-grade-export",
@@ -8,7 +8,15 @@
    "group": "COLOR AND EXPORT",
    "timeout": 900,
    "menu": true,
-   "about": "The open timeline: input colour from the Sony XML (S-Log3/S-Gamut3.Cine), every shot balanced to the others (70 %, at most 1.5 stops), the Mantra Filmic look on the group, then each clip rendered alone as MP4 H.264 1920x1080 20 Mb/s into FOR SVEMIR HD H264 beside the footage."
+   "about": "The open timeline: input colour from the Sony XML (S-Log3/S-Gamut3.Cine), every shot balanced to the others (70 %, at most 1.5 stops), the Mantra Filmic look on the group, then each clip rendered alone as MP4 H.264 1920x1080 20 Mb/s into FOR SVEMIR HD H264 beside the footage.",
+   "steps": [
+    "Colour management",
+    "Find the clips",
+    "Input colour space and measuring",
+    "Balance the exposure",
+    "The look",
+    "The export for Svemir"
+   ]
   },
   {
    "id": "create-timeline",
@@ -39,7 +47,16 @@
    "name": "Check everything",
    "script": "check.py",
    "about": "Is Resolve up, does its API answer, which project, resolution, page, pages in the bar, scripts installed and current.",
-   "group": "CHECK"
+   "group": "CHECK",
+   "steps": [
+    "Resolve itself",
+    "The API",
+    "The page bar",
+    "The scripts inside Resolve",
+    "The star's side, mirrored here",
+    "The star's apps and their state",
+    "The log"
+   ]
   }
  ]
 }

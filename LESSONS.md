@@ -26,3 +26,10 @@
 9. (22.10.2026) Resolve opens on the screen named in Workspace → Primary Display, not where the window was left. Editing
    UI.preset's PrimaryScreenIdx with Resolve closed was not enough (it still opened on the MacBook); clicking the menu
    item through Accessibility worked and Resolve saved it.
+
+## 28.10.2026: steps live in the script, control lives in a file
+
+The router runs a script inside one worker process and only answers when it ends, so the app cannot reach between
+steps through the router. A small file both sides read (control from the app, status from the script) works with the
+router, without it, and from Resolve's own menu (no active control: the steps just print). The worker outlives runs, so
+steps.py keys its state on the run id the app writes, never on module state alone.

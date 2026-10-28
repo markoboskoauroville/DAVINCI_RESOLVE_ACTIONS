@@ -54,3 +54,5 @@ It runs calls one at a time with a timeout and answers busy at once when Resolve
 runs. `resolve-run` (linked into ~/.local/bin) is the command-line door: `resolve-run status`, `resolve-run --who me
 job.py`, `hold`/`release`. Port `resolve` (8940) in ~/.config/mantra-ports.json, log ~/.config/resolve-router.log. The
 rule: MANTRA_MANIFEST modules/resolve-router.md.
+
+**v9 (28.10.2026):** every action has PLAY, NEXT STEP, STOP and RESTART, with a status line per step. A script marks its steps with `scripts/steps.py` (`step("title")`, `say("what it does")`) and lists their titles as `steps` in actions.json; see TAKEOVER.

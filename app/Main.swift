@@ -110,6 +110,34 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
 
 // MARK: the window
 
+// v9: the run's state, then one line per step: its mark, number and title, and what it is doing now
+struct StepList: View {
+    let phase: String; let rows: [StepRow]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(phase).font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundColor(phase.hasPrefix("FAILED") ? .red : phase == "DONE" ? GREEN : AMBER)
+            ForEach(Array(rows.enumerated()), id: \.offset) { i, r in
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("\(mark(r.state)) \(i + 1). \(r.title)").font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(color(r.state)).fixedSize(horizontal: false, vertical: true)
+                    if !r.line.isEmpty || r.state == "waiting" {
+                        Text(r.state == "waiting" ? "waits for NEXT STEP or PLAY" : r.line).font(.system(size: 11, design: .monospaced))
+                            .foregroundColor(GREY).padding(.leading, 22).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white.opacity(0.04)).cornerRadius(6)
+    }
+    func mark(_ s: String) -> String {
+        switch s { case "done": return "✓"; case "running": return "▶"; case "waiting": return "⏸"; case "stopped": return "■"; case "failed": return "✕"; default: return "○" }
+    }
+    func color(_ s: String) -> Color {
+        switch s { case "done": return GREEN; case "running": return .white; case "waiting": return AMBER; case "failed": return .red; default: return GREY }
+    }
+}
+
 struct ModuleHead: View {
     let title: String; let on: Bool; let set: (Bool) -> Void; var value: String = ""
     var body: some View {
@@ -176,13 +204,24 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(g).font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(.white)
                         ForEach(actions.list.filter { ($0.group ?? "OTHER") == g }) { a in
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: 4) {
                                 HStack {
-                                    Word(text: (actions.running == a.id ? "… " : "▶ ") + a.name.uppercased(), on: actions.running == a.id) { actions.run(a) }
+                                    Text(a.name.uppercased()).font(.system(size: 13, weight: .bold, design: .monospaced))
+                                        .foregroundColor(actions.live && actions.running == a.id ? GREEN : .white).fixedSize(horizontal: false, vertical: true)
                                     Spacer()
                                     KeyField(placeholder: "shortcut", text: actions.hotkeys[a.id] ?? "") { let ok = actions.setHotkey(a, $0); u.rebindKeys(); return ok }
                                 }
+                                // v9: the four controls of every action
+                                HStack(spacing: 4) {
+                                    let mine = actions.live && actions.running == a.id
+                                    Word(text: "▶ PLAY", on: mine && actions.mode == "play") { actions.play(a) }
+                                    Word(text: "⏭ NEXT STEP", on: mine && actions.mode == "step") { actions.next(a) }
+                                    Word(text: "■ STOP", on: false) { actions.stop(a) }.opacity(mine ? 1 : 0.4)
+                                    Word(text: "↻ RESTART", on: false) { actions.restart(a) }
+                                    Spacer()
+                                }
                                 if let about = a.about { Small(text: about) }
+                                if actions.running == a.id && !actions.rows.isEmpty { StepList(phase: actions.phase, rows: actions.rows) }
                             }
                         }
                     }

@@ -66,8 +66,16 @@ def get_resolve():
     return dvr.scriptapp('Resolve')
 
 
-def say(*a):
-    print(*a, flush=True)
+# v9 (28.10.2026): each part is a step, so the app's PLAY / NEXT STEP / STOP / RESTART reach it (steps.py)
+try:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from steps import step, say
+except ImportError:                                       # copied alone into Resolve's Scripts menu
+    def step(title):
+        print("STEP", title, flush=True)
+
+    def say(*a):
+        print(*a, flush=True)
 
 
 # ---- the look, in DaVinci Intermediate in and out --------------------------------------------------------------------
@@ -254,12 +262,15 @@ def main():
         say("No timeline is open")
         return 1
 
+    step("Colour management")
     for k, v in [("colorScienceMode", "davinciYRGBColorManagedv2"), ("isAutoColorManage", "0"),
                  ("colorSpaceTimeline", "DaVinci WG/Intermediate"), ("colorSpaceOutput", "Rec.709 Gamma 2.4"),
                  ("colorSpaceOutputToneMapping", "None" if os.path.exists(KODAK) else "DaVinci")]:
         if project.GetSetting(k) != v and not project.SetSetting(k, v):
             say(f"Resolve refused {k} = {v}")
+    say("DaVinci WG / Intermediate in, Rec.709 Gamma 2.4 out")
 
+    step("Find the clips")
     items = []
     for t in range(1, tl.GetTrackCount("video") + 1):
         for it in tl.GetItemListInTrack("video", t) or []:
@@ -270,8 +281,10 @@ def main():
     if not items:
         say("No clips with media on the timeline")
         return 1
+    say(f"{len(items)} clips with media on the timeline")
 
     # 2 + 3: input colour space and the measurement
+    step("Input colour space and measuring")
     measured = []
     for it, mp, path in items:
         gamma, space = sony_space(path)
@@ -286,14 +299,17 @@ def main():
     known = [e for e in measured if e is not None]
     target = statistics.median(known) if known else 0
 
+    step("Balance the exposure")
     report = []
     for (it, mp, path), ev in zip(items, measured):
         shift = 0.0 if ev is None else max(-LIMIT, min(LIMIT, PULL * (target - ev)))
         o = "%.5f" % (shift * STEP)
         it.SetCDL({"NodeIndex": "1", "Slope": "1 1 1", "Offset": f"{o} {o} {o}", "Power": "1 1 1", "Saturation": "1"})
         report.append({"clip": it.GetName(), "stops": None if ev is None else round(ev, 2), "shift": round(shift, 2)})
+        say(f"{it.GetName()}: {shift:+.2f} stops")
 
     # 4: the look
+    step("The look")
     os.makedirs(LUT_DIR, exist_ok=True)
     lut = os.path.join(LUT_DIR, LUT_FILE)
     write_lut(lut)
@@ -305,7 +321,10 @@ def main():
     if not group.GetPostClipNodeGraph().SetLUT(1, lut):
         say("Resolve refused the look LUT on the group's post-clip node")
 
+    say(f"{LUT_FILE} on the group {GROUP}")
+
     # 5: the export
+    step("The export for Svemir")
     out = os.path.join(os.path.dirname(items[0][2]), OUT_NAME)
     os.makedirs(out, exist_ok=True)
     project.SetCurrentRenderMode(0)
