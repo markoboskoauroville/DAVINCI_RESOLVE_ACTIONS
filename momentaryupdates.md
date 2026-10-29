@@ -172,3 +172,9 @@ the name's tooltip); the running action shows its steps under its row. Seen in t
 (29.10.2026, after v12.) **Status:** v13: every action collapsed by default (▸, number, name); a click on the name opens it
 (▾): ▶ PLAY, ⏭ NEXT, ■ STOP, ↻, the shortcut, then its steps listed (the live step lines while it runs); a running
 action stays open. Seen collapsed in the window; the click is Marko's (the names have no Accessibility press).
+
+## 29.10.2026, 15:20 (Marko)
+
+"if I am not in MultiCam mode, my number keys are working ... my number key 1 is to switch to angle 1 in Multicam ... they are going to timecode ... I need the numeric keyboard to be not triggering the timecode entry boxes." / "Yes, please build it."
+
+**Status v14:** NUMBER KEYS module (app/Keypad.swift): keypad 0-9 pass only when the clip under the playhead is a multicam clip (router, twice a second while Resolve is in front), else swallowed. Keyboard preset already maps Num+1..3 to Switch to Angle (screenshot). Not yet tried by Marko.

@@ -24,6 +24,7 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
     let importer = ImportModule()
     let actions = ActionsModule()
     let jkl = JKLModule()
+    let keypad = KeypadModule()
     @Published var on: [String: Bool] = [:]
     let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
@@ -31,12 +32,12 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
         super.init()
         let saved = SETTINGS.read()["modules"] as? [String: Bool] ?? [:]
         // first run: the modules that were on in the star's Lua apps stay on
-        on = ["pages": saved["pages"] ?? true, "display": saved["display"] ?? true, "import": saved["import"] ?? true, "jkl": saved["jkl"] ?? true]
+        on = ["pages": saved["pages"] ?? true, "display": saved["display"] ?? true, "import": saved["import"] ?? true, "jkl": saved["jkl"] ?? true, "keypad": saved["keypad"] ?? true]
         let menu = NSMenu(); menu.delegate = self; item.menu = menu
         item.button?.toolTip = "DaVinci Resolve Actions: the page and the resolution; click for everything"
         pages.onChange = { [weak self] in self?.paint() }
         display.onChange = { [weak self] in self?.paint() }
-        pages.setOn(on["pages"]!); display.on = on["display"]!; importer.setOn(on["import"]!); jkl.setOn(on["jkl"]!)
+        pages.setOn(on["pages"]!); display.on = on["display"]!; importer.setOn(on["import"]!); jkl.setOn(on["jkl"]!); keypad.setOn(on["keypad"]!)
         let nc = NSWorkspace.shared.notificationCenter
         nc.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] n in
             guard (n.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier == BUNDLE else { return }
@@ -58,7 +59,7 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
 
     func setModule(_ k: String, _ v: Bool) {
         on[k] = v; SETTINGS.change { $0["modules"] = self.on }
-        switch k { case "pages": pages.setOn(v); case "display": display.on = v; if v { display.read() }; case "jkl": jkl.setOn(v); default: importer.setOn(v) }
+        switch k { case "pages": pages.setOn(v); case "display": display.on = v; if v { display.read() }; case "jkl": jkl.setOn(v); case "keypad": keypad.setOn(v); default: importer.setOn(v) }
         rebindKeys(); paint()
     }
     func rebindKeys() { HotKeys.shared.set(pages.hotkeys() + display.hotkeys() + actions.keys()) }
@@ -166,6 +167,7 @@ struct SettingsView: View {
     @ObservedObject var pages: PagesModule
     @ObservedObject var display: DisplayModule
     @ObservedObject var importer: ImportModule
+    @ObservedObject var keypad: KeypadModule = UMBRELLA.keypad
     @ObservedObject var actions: ActionsModule
     @ObservedObject var jkl: JKLModule
     @State var openActions: Set<String> = []     // v13: the actions shown open (collapsed by default)
@@ -281,6 +283,19 @@ struct SettingsView: View {
                                 .font(.system(size: 11)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true)
                         }
                         if !jkl.said.isEmpty { Small(text: jkl.said) }
+                    }
+                }
+                Divider()
+                // NUMBER KEYS (29.10.2026)
+                VStack(alignment: .leading, spacing: 8) {
+                    ModuleHead(title: "NUMBER KEYS", on: u.on["keypad"]!, set: { u.setModule("keypad", $0) }, value: keypad.multicam ? "MULTICAM: ANGLES" : "NO TIMECODE BOX")
+                    if u.on["keypad"]! {
+                        Small(text: "The keypad's 0–9 switch angles in Resolve only when the clip under the playhead is a multicam clip; anywhere else they are held back, so the timecode box never opens. With ⌘ ⌃ ⌥, and the top row of digits, they stay Resolve's.")
+                        if !keypad.tapOK {
+                            Text("Accessibility: not allowed yet. System Settings → Privacy & Security → Accessibility → DaVinci Resolve Actions (Mantra) on.")
+                                .font(.system(size: 11)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true)
+                        }
+                        if !keypad.said.isEmpty { Small(text: keypad.said) }
                     }
                 }
                 Divider()
