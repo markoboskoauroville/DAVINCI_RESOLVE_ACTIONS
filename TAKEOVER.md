@@ -50,3 +50,18 @@ Marko's continuous camera take, after Resolve's own "Sync by sound" failed. The 
 certain); `avsync.measure(A, tA, B, tB)` refines to 5 ms. Measure at 2–3 points per clip: agreement means right and no drift.
 Placement went through the Resolve scripting (DeleteClips + AppendToTimeline with recordFrame, mediaType 1 and 2 separately:
 a single AppendToTimeline without mediaType lost the linked audio). Next: make it an Action ("Sync by rhythm").
+
+## 29.10.2026 (afternoon): time code from the music, NUMBER KEYS tried and removed
+
+- **tools/retimecode_by_music.py** (from the Santoshi concert): every clip gets the master camera's time code at the
+  moment it was recorded, measured with avsync/songfind (music onsets). MP4: `ffmpeg -map 0:v:0 -map 0:a -c copy
+  -timecode HH:MM:SS:FF` into a NEW file (originals untouched; Sony's rtmd data stream is left out). WAV: BWF
+  `-write_bext 1 -metadata time_reference=<samples since midnight>`. Resolve reads both as Start TC (checked). Result:
+  ~/Music/SantoshiKoncert/SYNCHRONIZED BY TIME CODE (+ time codes.json), bin "synchronized by time code", timeline
+  "MEGAMIX synchronized by time code" placed by time code alone. Next: make it an action (Marko: "the user should point
+  to the name of the bin ... our algorithm should synchronize by music, changing the time codes").
+- Open: Marko's camera picture (V1) looked out of sync against the rest; all sync rests on its SOUND, so if its sound
+  is late against its picture, the same offset stays. Light/motion correlation of pictures was too weak (strength ~3)
+  and Marko stopped it; ask him the frames by eye.
+- NUMBER KEYS (v14) held the keypad back off multicam clips; removed in v15. The real cause was single viewer mode:
+  with the source viewer hidden, Switch to Angle has no multicam viewer and Resolve hands the digit to timecode entry.

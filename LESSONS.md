@@ -33,3 +33,12 @@ The router runs a script inside one worker process and only answers when it ends
 steps through the router. A small file both sides read (control from the app, status from the script) works with the
 router, without it, and from Resolve's own menu (no active control: the steps just print). The worker outlives runs, so
 steps.py keys its state on the run id the app writes, never on module state alone.
+
+## 29.10.2026
+- Resolve's scripting cannot reach inside a multicam clip; work on a normal timeline (and Open in Timeline for angles).
+- No command turns a hand-synced timeline into a multicam clip: give the clips the timeline's time code, then Create
+  New Multicam Clip with Angle Sync: Timecode.
+- Time code that travels with the files: ffmpeg -c copy -timecode for MP4, BWF time_reference for WAV; a 24 h wrap
+  (a master starting at 21:43 puts late clips at 00:13) breaks a time-code sync: choose the master's start with room.
+- Keypad digits opening the timecode box on a multicam: look for single viewer mode before writing a key mod.
+- Resolve's keyboard preset (keyboard.preset.xml) is a hex-encoded binary blob: read it, never edit it by hand.
