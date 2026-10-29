@@ -135,3 +135,11 @@ Previous Page), PROJECT (Toggle HD / UHD) and CHECK (Check everything) are modif
 functionality and go into a new tab MODS.
 
 > Actions and Mods are two only tabs. Navigate and Projects are under Mods, actually
+
+## 29.10.2026 — action: Export Current Project to a Folder (with Delete Source Media / Delete Source Project)
+
+> You finish testing. Please make DaVinci Actions: "Export Current Project to a Folder." That is doing what it collects all the media from the project and the project file itself and saves it in a predefined folder. The user selects it, and always before running, you ask for further user input. The user can press OK to confirm the last folder or enter a new one. The same action needs to have the option Delete Source Media. It means it's going to delete all the media. Another checkmark is Delete Source Project, so the project is gone. It's complete cleanup.
+>
+> Move the folder and media and everything to an external drive. The project is deleted. We have there one project file and we have a media file. You need to organize everything in a unifying structure. The project name is the folder name, and inside the folder name is the project itself with its name. Then you can make a folder called Sources, and inside Sources you collect sources from everywhere. You need to rearrange them in three categories: images, videos, and audio.
+
+**Status:** in progress 29.10.2026.
