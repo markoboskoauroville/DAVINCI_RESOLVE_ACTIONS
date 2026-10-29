@@ -168,6 +168,7 @@ struct SettingsView: View {
     @ObservedObject var importer: ImportModule
     @ObservedObject var actions: ActionsModule
     @ObservedObject var jkl: JKLModule
+    @State var openActions: Set<String> = []     // v13: the actions shown open (collapsed by default)
     @State var tab = (SETTINGS.read()["tab"] as? String).map { $0 == "ACTIONS" ? "ACTIONS" : "MODS" } ?? "ACTIONS"   // NAVIGATE / PROJECT of v8-v10 are MODS now
     var body: some View {
         VStack(spacing: 0) {
@@ -208,21 +209,41 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(Array(actions.inTab(tab).enumerated()), id: \.element.id) { n, a in
                         let mine = actions.live && actions.running == a.id
-                        VStack(alignment: .leading, spacing: 4) {
+                        // v13 (Marko, 29.10.2026: "The list can be collapsed by default ... If the user clicks on the name of
+                        // the action, the whole action list is uncollapsed"): the name alone; a click opens its controls and
+                        // its steps; a running action stays open
+                        let open = openActions.contains(a.id) || mine
+                        VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 6) {
-                                Text("\(n + 1)").font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(GREY).frame(width: 18, alignment: .trailing)
+                                Text(open ? "▾" : "▸").font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(GREY).frame(width: 12)
+                                Text("\(n + 1)").font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(GREY)
                                 Text(a.name.uppercased()).font(.system(size: 13, weight: .bold, design: .monospaced))
-                                    .foregroundColor(mine ? GREEN : .white).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                                    .foregroundColor(mine ? GREEN : .white).fixedSize(horizontal: false, vertical: true)
                                     .help(a.about ?? "")
                                 Spacer()
-                                Word(text: "▶", on: mine && actions.mode == "play") { actions.play(a) }.help("PLAY")
-                                Word(text: "⏭", on: mine && actions.mode == "step") { actions.next(a) }.help("NEXT STEP")
-                                Word(text: "■", on: false) { actions.stop(a) }.opacity(mine ? 1 : 0.4).help("STOP")
-                                Word(text: "↻", on: false) { actions.restart(a) }.help("RESTART")
-                                KeyField(placeholder: "shortcut", text: actions.hotkeys[a.id] ?? "") { let ok = actions.setHotkey(a, $0); u.rebindKeys(); return ok }
-                                    .fixedSize()
                             }
-                            if actions.running == a.id && !actions.rows.isEmpty { StepList(phase: actions.phase, rows: actions.rows).padding(.leading, 24) }
+                            .contentShape(Rectangle())
+                            .onTapGesture { if openActions.contains(a.id) { openActions.remove(a.id) } else { openActions.insert(a.id) } }
+                            if open {
+                                HStack(spacing: 6) {
+                                    Word(text: "▶ PLAY", on: mine && actions.mode == "play") { actions.play(a) }
+                                    Word(text: "⏭ NEXT", on: mine && actions.mode == "step") { actions.next(a) }
+                                    Word(text: "■ STOP", on: false) { actions.stop(a) }.opacity(mine ? 1 : 0.4)
+                                    Word(text: "↻", on: false) { actions.restart(a) }.help("RESTART")
+                                    Spacer()
+                                    KeyField(placeholder: "shortcut", text: actions.hotkeys[a.id] ?? "") { let ok = actions.setHotkey(a, $0); u.rebindKeys(); return ok }
+                                        .fixedSize()
+                                }.padding(.leading, 30)
+                                if actions.running == a.id && !actions.rows.isEmpty {
+                                    StepList(phase: actions.phase, rows: actions.rows).padding(.leading, 30)
+                                } else {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        ForEach(Array((a.steps ?? [a.name]).enumerated()), id: \.offset) { k, t in
+                                            Text("\(k + 1). \(t)").font(.system(size: 11, design: .monospaced)).foregroundColor(GREY)
+                                        }
+                                    }.padding(.leading, 30)
+                                }
+                            }
                         }
                         Divider()
                     }

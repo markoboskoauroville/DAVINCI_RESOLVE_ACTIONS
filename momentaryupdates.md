@@ -169,4 +169,6 @@ the name's tooltip); the running action shows its steps under its row. Seen in t
 
 > The list can be collapsed by default. It's collapsed. If the user clicks on the name of the action, the whole action list is uncollapsed.
 
-(29.10.2026, after v12.)
+(29.10.2026, after v12.) **Status:** v13: every action collapsed by default (▸, number, name); a click on the name opens it
+(▾): ▶ PLAY, ⏭ NEXT, ■ STOP, ↻, the shortcut, then its steps listed (the live step lines while it runs); a running
+action stays open. Seen collapsed in the window; the click is Marko's (the names have no Accessibility press).

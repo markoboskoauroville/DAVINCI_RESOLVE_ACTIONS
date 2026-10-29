@@ -4,7 +4,7 @@ import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 
-let VERSION = 12
+let VERSION = 13
 let RELEASES = "https://github.com/markoboskoauroville/DAVINCI_RESOLVE_ACTIONS/releases/latest"
 let BUNDLE = "com.blackmagic-design.DaVinciResolve"
 let PYTHON = NSHomeDirectory() + "/.pyenv/versions/3.10.14/bin/python3"
