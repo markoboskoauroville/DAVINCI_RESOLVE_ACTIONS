@@ -158,3 +158,9 @@ Tested twice with throwaway projects and generated test files (PETAK13B saved, c
 render jobs untouched): structure right, name clash → "clip (2).mp4", the .drp points at Sources, originals in the
 Trash, the project gone from Resolve, its render backed up and removed, a source clip in the render folder not
 mistaken for a render, the gallery gone. Not yet seen: the form in the app (Marko's PLAY).
+
+## 29.10.2026 — the ACTIONS tab as a plain list
+
+> Please, inside the actions, write "Simplify action flow: just one action after the other, top of each other." A list of actions so we understand what's going on without too much additional text.
+
+**Status:** in progress 29.10.2026.
