@@ -163,4 +163,6 @@ mistaken for a render, the gallery gone. Not yet seen: the form in the app (Mark
 
 > Please, inside the actions, write "Simplify action flow: just one action after the other, top of each other." A list of actions so we understand what's going on without too much additional text.
 
-**Status:** in progress 29.10.2026.
+**Status:** done 29.10.2026, v12: ACTIONS (and MODS' actions) are one numbered row each, one under the other: the name
+(two lines at most), ▶ ⏭ ■ ↻ (their names as tooltips), the shortcut. No sections, no paragraphs (the explanation is
+the name's tooltip); the running action shows its steps under its row. Seen in the window.

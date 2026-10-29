@@ -202,35 +202,32 @@ struct SettingsView: View {
                 Group {
                 // THE ONE-BUTTON ACTIONS, v8: in groups, one per way of working
                 HStack { Spacer(); Word(text: "INSTALL INTO RESOLVE'S MENU", on: false) { actions.installIntoResolve() } }
-                ForEach(actions.groups(tab), id: \.self) { g in
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(g).font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(.white)
-                        ForEach(actions.inTab(tab).filter { ($0.group ?? "OTHER") == g }) { a in
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text(a.name.uppercased()).font(.system(size: 13, weight: .bold, design: .monospaced))
-                                        .foregroundColor(actions.live && actions.running == a.id ? GREEN : .white).fixedSize(horizontal: false, vertical: true)
-                                    Spacer()
-                                    KeyField(placeholder: "shortcut", text: actions.hotkeys[a.id] ?? "") { let ok = actions.setHotkey(a, $0); u.rebindKeys(); return ok }
-                                }
-                                // v9: the four controls of every action
-                                HStack(spacing: 4) {
-                                    let mine = actions.live && actions.running == a.id
-                                    Word(text: "▶ PLAY", on: mine && actions.mode == "play") { actions.play(a) }
-                                    Word(text: "⏭ NEXT STEP", on: mine && actions.mode == "step") { actions.next(a) }
-                                    Word(text: "■ STOP", on: false) { actions.stop(a) }.opacity(mine ? 1 : 0.4)
-                                    Word(text: "↻ RESTART", on: false) { actions.restart(a) }
-                                    Spacer()
-                                }
-                                if let about = a.about { Small(text: about) }
-                                if actions.running == a.id && !actions.rows.isEmpty { StepList(phase: actions.phase, rows: actions.rows) }
+                // v12 (Marko, 29.10.2026: "Simplify action flow: just one action after the other, top of each other. A list
+                // of actions so we understand what's going on without too much additional text"): one numbered row per
+                // action, no sections, no paragraphs (the explanation is the name's tooltip); the running one shows its steps
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(Array(actions.inTab(tab).enumerated()), id: \.element.id) { n, a in
+                        let mine = actions.live && actions.running == a.id
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 6) {
+                                Text("\(n + 1)").font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundColor(GREY).frame(width: 18, alignment: .trailing)
+                                Text(a.name.uppercased()).font(.system(size: 13, weight: .bold, design: .monospaced))
+                                    .foregroundColor(mine ? GREEN : .white).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                                    .help(a.about ?? "")
+                                Spacer()
+                                Word(text: "▶", on: mine && actions.mode == "play") { actions.play(a) }.help("PLAY")
+                                Word(text: "⏭", on: mine && actions.mode == "step") { actions.next(a) }.help("NEXT STEP")
+                                Word(text: "■", on: false) { actions.stop(a) }.opacity(mine ? 1 : 0.4).help("STOP")
+                                Word(text: "↻", on: false) { actions.restart(a) }.help("RESTART")
+                                KeyField(placeholder: "shortcut", text: actions.hotkeys[a.id] ?? "") { let ok = actions.setHotkey(a, $0); u.rebindKeys(); return ok }
+                                    .fixedSize()
                             }
+                            if actions.running == a.id && !actions.rows.isEmpty { StepList(phase: actions.phase, rows: actions.rows).padding(.leading, 24) }
                         }
+                        Divider()
                     }
-                    Divider()
                 }
                 if !actions.said.isEmpty { Text(actions.said).font(.system(size: 12, design: .monospaced)).foregroundColor(AMBER).fixedSize(horizontal: false, vertical: true) }
-                Small(text: "A new action or mod: a script in the app's scripts folder and one line in actions.json (its group is its section; a tab of MODS puts it here in MODS). Shortcuts work while Resolve is in front.")
                 }
                 if tab == "MODS" {
                 Divider()
