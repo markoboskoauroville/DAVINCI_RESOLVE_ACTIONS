@@ -142,4 +142,6 @@ functionality and go into a new tab MODS.
 >
 > Move the folder and media and everything to an external drive. The project is deleted. We have there one project file and we have a media file. You need to organize everything in a unifying structure. The project name is the folder name, and inside the folder name is the project itself with its name. Then you can make a folder called Sources, and inside Sources you collect sources from everywhere. You need to rearrange them in three categories: images, videos, and audio.
 
+> While an action is running, it must have a verbose display showing what is currently copying, the speed of the transfer, and the estimated time for finishing the action.
+
 **Status:** in progress 29.10.2026.
