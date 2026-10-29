@@ -166,3 +166,7 @@ mistaken for a render, the gallery gone. Not yet seen: the form in the app (Mark
 **Status:** done 29.10.2026, v12: ACTIONS (and MODS' actions) are one numbered row each, one under the other: the name
 (two lines at most), ▶ ⏭ ■ ↻ (their names as tooltips), the shortcut. No sections, no paragraphs (the explanation is
 the name's tooltip); the running action shows its steps under its row. Seen in the window.
+
+> The list can be collapsed by default. It's collapsed. If the user clicks on the name of the action, the whole action list is uncollapsed.
+
+(29.10.2026, after v12.)
