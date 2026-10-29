@@ -144,4 +144,8 @@ functionality and go into a new tab MODS.
 
 > While an action is running, it must have a verbose display showing what is currently copying, the speed of the transfer, and the estimated time for finishing the action.
 
+> We can call this Action Project Backup.
+
+> Yes, we can. Also now you remind me this is a project backup and clean up. It means you need to clean up every render file, everything what this project was generating from the system drive.
+
 **Status:** in progress 29.10.2026.
