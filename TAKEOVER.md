@@ -40,3 +40,13 @@ a next button ("Next Step"), a stop button, and a restart button" and "a status 
 - `scripts/` travels inside the app as Resources/scripts. `pages_helper.py` protocol: in `open <page>`, `pages`, `quit`;
   out `page <p>`, `pages a,b`, `waiting`, `error …`. It leaves by itself when its parent dies (getppid() == 1).
 - Build: `./build.sh` (VERSION from app/Common.swift).
+
+## tools/avsync.py and tools/songfind.py: sync by sound (29.10.2026)
+
+Used on SANTOSH / MEGAMIX to sync Svemir's α7 V (Rec Run timecode, useless for sync) and the eight printed desk songs to
+Marko's continuous camera take, after Resolve's own "Sync by sound" failed. The sound is reduced to an onset envelope
+(where new sound starts in each band, log magnitude, so level and EQ drop out) and slid against the other recording.
+`songfind.py <long file> <songs...>` finds each song in a long take (50 values/s, FFT correlation, strength above 10 is
+certain); `avsync.measure(A, tA, B, tB)` refines to 5 ms. Measure at 2–3 points per clip: agreement means right and no drift.
+Placement went through the Resolve scripting (DeleteClips + AppendToTimeline with recordFrame, mediaType 1 and 2 separately:
+a single AppendToTimeline without mediaType lost the linked audio). Next: make it an Action ("Sync by rhythm").
