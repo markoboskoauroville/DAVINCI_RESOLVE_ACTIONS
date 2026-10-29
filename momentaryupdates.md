@@ -178,3 +178,5 @@ action stays open. Seen collapsed in the window; the click is Marko's (the names
 "if I am not in MultiCam mode, my number keys are working ... my number key 1 is to switch to angle 1 in Multicam ... they are going to timecode ... I need the numeric keyboard to be not triggering the timecode entry boxes." / "Yes, please build it."
 
 **Status v14:** NUMBER KEYS module (app/Keypad.swift): keypad 0-9 pass only when the clip under the playhead is a multicam clip (router, twice a second while Resolve is in front), else swallowed. Keyboard preset already maps Num+1..3 to Switch to Angle (screenshot). Not yet tried by Marko.
+
+**Status v15 (15:35):** NUMBER KEYS removed at Marko's word ("It is not needed"): the cause was single viewer mode (no multicam viewer), not the keys.
