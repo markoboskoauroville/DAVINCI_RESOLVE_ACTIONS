@@ -1,5 +1,5 @@
 {
- "note": "The one-button actions of DaVinci Resolve Actions. A new action is a script in this folder and one entry here: id, name, script, args (optional), about, menu (true: also installed into Resolve's Workspace › Scripts › Utility). The app runs it with Resolve's Python from outside (External scripting = Local); its last printed line is shown. Shortcuts are his, set in the window, kept in ~/.config/resolve-actions.json. v8 (28.10.2026): group = the section of the ACTIONS tab; timeout = seconds the router allows it (default 30). v9 (28.10.2026): steps = the step titles of a script that marks its steps with steps.py, so PLAY / NEXT STEP / STOP / RESTART reach it and each step has its status line; an action without steps is one step. v10 (28.10.2026): tab = \"MODS\" puts it in the MODS tab (changes to how Resolve itself works); without it, ACTIONS.",
+ "note": "The one-button actions of DaVinci Resolve Actions. A new action is a script in this folder and one entry here: id, name, script, args (optional), about, menu (true: also installed into Resolve's Workspace › Scripts › Utility). The app runs it with Resolve's Python from outside (External scripting = Local); its last printed line is shown. Shortcuts are his, set in the window, kept in ~/.config/resolve-actions.json. v8 (28.10.2026): group = the section of the ACTIONS tab; timeout = seconds the router allows it (default 30). v9 (28.10.2026): steps = the step titles of a script that marks its steps with steps.py, so PLAY / NEXT STEP / STOP / RESTART reach it and each step has its status line; an action without steps is one step. v10 (28.10.2026): tab = \"MODS\" puts it in the MODS tab (changes to how Resolve itself works); without it, ACTIONS. v11 (29.10.2026): ask = questions before every run (folder: the label of a folder field passed as --folder and remembered; checks: tick boxes passed as --their-words; warn: ticks that get a second \"are you sure\"); direct = true runs with Resolve's Python straight (no router time limit), for long actions.",
  "actions": [
   {
    "id": "balance-grade-export",
@@ -16,6 +16,34 @@
     "Balance the exposure",
     "The look",
     "The export for Svemir"
+   ]
+  },
+  {
+   "id": "project-backup",
+   "name": "Project Backup",
+   "script": "Project Backup.py",
+   "group": "PROJECT",
+   "direct": true,
+   "menu": false,
+   "about": "Backup and clean up of the open project into a folder (an external drive): <folder>/<project>/<project>.drp, Sources/Images, Videos, Audio (every file it uses) and Renders, each copy checked. Delete Source Media: the originals to the Trash afterwards. Delete Source Project: the project deleted from Resolve after its .drp is on the drive, and everything it made on the system drive (renders, render cache, optimized media, gallery stills, captures, proxies) to the Trash.",
+   "ask": {
+    "folder": "Backup folder (OK keeps the last one)",
+    "checks": [
+     "Delete Source Media",
+     "Delete Source Project"
+    ],
+    "warn": [
+     "Delete Source Media",
+     "Delete Source Project"
+    ]
+   },
+   "steps": [
+    "Read the project",
+    "Copy the media and the renders",
+    "Point the project at the copies",
+    "Export the project file",
+    "Delete the source media",
+    "Delete the source project and what it made"
    ]
   },
   {

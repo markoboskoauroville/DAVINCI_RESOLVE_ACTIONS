@@ -1,5 +1,12 @@
 # TAKEOVER
 
+**29.10.2026, v11: PROJECT BACKUP (backup and clean up).** scripts/Project Backup.py; actions.json "ask" (a form before
+the run: folder → --folder, ticks → --delete-source-media / --delete-source-project, "warn" ticks get a second confirm)
+and "direct" (runScript without the router: no time limit). Renders = files in a render job's TargetDir named like its
+output (exact, or the words before the clip name for per-clip jobs), never a project source. Generated = CacheClip/<id>,
+.gallery/<id>, projectMediaLocation/<name>, linked proxies. Trash through Finder (recoverable). Image sequences are left
+in place. Tested 29.10.2026 on two throwaway projects (see momentaryupdates).
+
 **28.10.2026, v10: a MODS tab.** Marko: "we have only one action: Color and Export ... These are all modifications of the
 [functionality] of DaVinci Resolve. Please put them in Mods." Tabs: ACTIONS (only Balancing, Grading, and Exporting
 Automatic) and MODS, the only two tabs (Marko: "Actions and Mods are two only tabs. Navigate and Projects are under

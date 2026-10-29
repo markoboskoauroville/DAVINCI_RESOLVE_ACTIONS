@@ -3,6 +3,7 @@
 // ~/.config/resolve-actions.json), live only while Resolve is in front. The ones marked "menu" are also copied into
 // Resolve's Workspace › Scripts › Utility, so they work from inside Resolve too.
 import Foundation
+import AppKit
 
 struct Action: Identifiable, Decodable {
     let id: String; let name: String; let script: String
@@ -10,6 +11,17 @@ struct Action: Identifiable, Decodable {
     var group: String? = nil; var timeout: Int? = nil     // v8: the tab section it sits in; seconds the router allows it
     var steps: [String]? = nil                            // v9: the step titles, shown before the run (the script's step() calls)
     var tab: String? = nil                                // v10: "MODS" for a change to how Resolve itself works, else ACTIONS
+    var ask: Ask? = nil                                   // v11: questions before every run (a folder, tick boxes)
+    var direct: Bool? = nil                               // v11: run with Resolve's Python straight, not through the router
+}
+
+// v11 (Marko, 29.10.2026, Project Backup: "always before running, you ask for further user input. The user can press OK
+// to confirm the last folder or enter a new one"): an action with "ask" opens a small form first; the folder is passed
+// as --folder PATH and remembered, each ticked box as --<its words in lower case, joined by dashes>.
+struct Ask: Decodable {
+    var folder: String? = nil          // the label of the folder field; nil = no folder asked
+    var checks: [String]? = nil        // tick boxes, off every time
+    var warn: [String]? = nil          // ticks that destroy something: a second "are you sure" before the run
 }
 
 // v9 (28.10.2026, Marko: "Every action should have a play button, a next button (in this case, a "Next Step" button), a
@@ -70,6 +82,66 @@ final class ActionsModule: ObservableObject {
     }
 
     func start(_ a: Action, mode m: String) {
+        if let q = a.ask {
+            guard !live else { said = "\(list.first { $0.id == running }?.name ?? "An action") is still running: STOP it first"; return }
+            guard let extra = askBeforeRun(a, q) else { said = "\(a.name): cancelled"; return }
+            var b = a; b.args = (a.args ?? []) + extra; b.ask = nil
+            begin(b, mode: m); return
+        }
+        begin(a, mode: m)
+    }
+
+    /// The form before the run: the folder (the last one, OK keeps it), Choose…, the tick boxes. nil = cancelled.
+    func askBeforeRun(_ a: Action, _ q: Ask) -> [String]? {
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = a.name
+        alert.informativeText = a.about ?? ""
+        alert.addButton(withTitle: "OK"); alert.addButton(withTitle: "Cancel")
+        let box = NSStackView(); box.orientation = .vertical; box.alignment = .leading; box.spacing = 8
+        let lastKey = "ask." + a.id + ".folder"
+        let field = NSTextField(string: SETTINGS.read()[lastKey] as? String ?? "")
+        field.placeholderString = "/Volumes/…"
+        field.widthAnchor.constraint(equalToConstant: 420).isActive = true
+        if let label = q.folder {
+            box.addArrangedSubview(NSTextField(labelWithString: label))
+            let choose = NSButton(title: "Choose…", target: nil, action: nil)
+            let chooser = Chooser(field: field); choose.target = chooser; choose.action = #selector(Chooser.pick)
+            objc_setAssociatedObject(choose, "chooser", chooser, .OBJC_ASSOCIATION_RETAIN)
+            let row = NSStackView(views: [field, choose]); row.spacing = 6
+            box.addArrangedSubview(row)
+        }
+        let ticks = (q.checks ?? []).map { t -> NSButton in
+            let c = NSButton(checkboxWithTitle: t, target: nil, action: nil); c.state = .off
+            if q.warn?.contains(t) == true { c.contentTintColor = .systemRed }
+            box.addArrangedSubview(c); return c
+        }
+        box.frame = NSRect(x: 0, y: 0, width: 520, height: CGFloat(30 + 26 * ticks.count + (q.folder == nil ? 0 : 50)))
+        alert.accessoryView = box
+        alert.window.initialFirstResponder = field
+        guard alert.runModal() == .alertFirstButtonReturn else { return nil }
+        var out: [String] = []
+        if q.folder != nil {
+            let path = (field.stringValue as NSString).expandingTildeInPath.trimmingCharacters(in: .whitespaces)
+            guard !path.isEmpty else { said = "\(a.name): no folder given"; return nil }
+            SETTINGS.change { $0[lastKey] = path }
+            out += ["--folder", path]
+        }
+        let chosen = zip(q.checks ?? [], ticks).filter { $0.1.state == .on }.map { $0.0 }
+        let dangerous = chosen.filter { q.warn?.contains($0) == true }
+        if !dangerous.isEmpty {
+            let sure = NSAlert()
+            sure.alertStyle = .critical
+            sure.messageText = dangerous.joined(separator: " and ") + "?"
+            sure.informativeText = "This cannot be undone from here. Everything is copied and checked first; only then is it removed."
+            sure.addButton(withTitle: "Yes, do it"); sure.addButton(withTitle: "Cancel")
+            guard sure.runModal() == .alertFirstButtonReturn else { return nil }
+        }
+        out += chosen.map { "--" + $0.lowercased().split(separator: " ").joined(separator: "-") }
+        return out
+    }
+
+    func begin(_ a: Action, mode m: String) {
         guard !live else { said = "\(list.first { $0.id == running }?.name ?? "An action") is still running: STOP it first"; return }
         guard resolveApp() != nil else { said = "\(a.name): Resolve is not running"; return }
         running = a.id; runID = UUID().uuidString; mode = m; allow = m == "step" ? 1 : 0; stopAsked = false; live = true
@@ -82,7 +154,7 @@ final class ActionsModule: ObservableObject {
         let stepped = a.steps != nil
         if !stepped { rows[0].state = "running" }
         // a run that waits between steps needs the router's longest time (1800 s), not the script's own
-        runScript(a.script, a.args ?? [], timeout: stepped ? 1800 : (a.timeout ?? 30)) { code, line in
+        runScript(a.script, a.args ?? [], timeout: stepped ? 1800 : (a.timeout ?? 30), direct: a.direct == true) { code, line in
             self.readStatus()
             self.poll?.invalidate(); self.live = false; self.writeControl(active: false)
             let stopped = self.stopAsked || self.rows.contains { $0.state == "stopped" }
@@ -149,5 +221,16 @@ final class ActionsModule: ObservableObject {
             if (try? fm.copyItem(atPath: SCRIPTS + "/" + a.script, toPath: to)) != nil { n += 1 }
         }
         said = "\(n) scripts are in Resolve's Workspace › Scripts › Utility"
+    }
+}
+
+/// v11: the folder field's Choose… button (an NSOpenPanel for folders).
+final class Chooser: NSObject {
+    let field: NSTextField
+    init(field: NSTextField) { self.field = field }
+    @objc func pick() {
+        let p = NSOpenPanel(); p.canChooseDirectories = true; p.canChooseFiles = false; p.canCreateDirectories = true
+        if !field.stringValue.isEmpty { p.directoryURL = URL(fileURLWithPath: field.stringValue) }
+        if p.runModal() == .OK, let u = p.url { field.stringValue = u.path }
     }
 }

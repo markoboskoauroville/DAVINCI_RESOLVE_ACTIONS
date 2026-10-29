@@ -148,4 +148,13 @@ functionality and go into a new tab MODS.
 
 > Yes, we can. Also now you remind me this is a project backup and clean up. It means you need to clean up every render file, everything what this project was generating from the system drive.
 
-**Status:** in progress 29.10.2026.
+**Status:** v11 29.10.2026: PROJECT BACKUP in ACTIONS (group PROJECT). Before every run a form: the backup folder (the
+last one, OK keeps it; Choose…), Delete Source Media, Delete Source Project (both red, a second "are you sure").
+<folder>/<project>/<project>.drp, Sources/Images | Videos | Audio, Renders. Six steps with a live line: file, size,
+MB/s, done of total, time left. Every copy size-checked before anything is removed; originals and everything the
+project made go to the Trash (recoverable); the project is deleted only after its .drp is on the drive; without the
+delete ticks the open project keeps its own files. Runs outside the router (no 30-minute limit).
+Tested twice with throwaway projects and generated test files (PETAK13B saved, closed, reopened on Deliver, its 2
+render jobs untouched): structure right, name clash → "clip (2).mp4", the .drp points at Sources, originals in the
+Trash, the project gone from Resolve, its render backed up and removed, a source clip in the render folder not
+mistaken for a render, the gallery gone. Not yet seen: the form in the app (Marko's PLAY).

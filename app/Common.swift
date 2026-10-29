@@ -4,7 +4,7 @@ import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 
-let VERSION = 10
+let VERSION = 11
 let RELEASES = "https://github.com/markoboskoauroville/DAVINCI_RESOLVE_ACTIONS/releases/latest"
 let BUNDLE = "com.blackmagic-design.DaVinciResolve"
 let PYTHON = NSHomeDirectory() + "/.pyenv/versions/3.10.14/bin/python3"
@@ -70,9 +70,10 @@ func router(_ method: String, _ path: String, body: [String: Any]? = nil, timeou
 
 // a script run against Resolve, through the router when it runs (one call at a time, a timeout, "busy" instead of a
 // hang), else with Resolve's Python straight; the answer is its last line
-func runScript(_ name: String, _ args: [String] = [], timeout: Int = 30, then: @escaping (Int32, String) -> Void) {
+func runScript(_ name: String, _ args: [String] = [], timeout: Int = 30, direct: Bool = false, then: @escaping (Int32, String) -> Void) {
     DispatchQueue.global().async {
-        let viaRouter = (try? Data(contentsOf: URL(string: "http://127.0.0.1:\(ROUTER_PORT)/health")!)) != nil
+        // v11: a long action (Project Backup copies for hours) talks to Resolve itself, outside the router's time limit
+        let viaRouter = !direct && (try? Data(contentsOf: URL(string: "http://127.0.0.1:\(ROUTER_PORT)/health")!)) != nil
         let p = Process(); p.executableURL = URL(fileURLWithPath: PYTHON)
         p.arguments = viaRouter ? [SCRIPTS + "/resolve-run", "--who", "actions", "--plain", "--timeout", String(timeout), SCRIPTS + "/" + name] + args
                                 : [SCRIPTS + "/" + name] + args
