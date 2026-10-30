@@ -180,3 +180,9 @@ action stays open. Seen collapsed in the window; the click is Marko's (the names
 **Status v14:** NUMBER KEYS module (app/Keypad.swift): keypad 0-9 pass only when the clip under the playhead is a multicam clip (router, twice a second while Resolve is in front), else swallowed. Keyboard preset already maps Num+1..3 to Switch to Angle (screenshot). Not yet tried by Marko.
 
 **Status v15 (15:35):** NUMBER KEYS removed at Marko's word ("It is not needed"): the cause was single viewer mode (no multicam viewer), not the keys.
+
+## 30.10.2026: PERMISSIONS at the top right
+
+> please make this in every application that needs some permission. If permissions are not set, it needs to have text in the top right: "Permissions." Then I click on it, and it opens me directly to my settings page where I need to set permissions.
+
+(MANTRA_MANIFEST modules/swift-apps.md, "PERMISSIONS at the top right while one is missing".) **Status:** requested 30.10.2026, to build.
