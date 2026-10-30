@@ -15,6 +15,7 @@
 // are caught by an event tap at the moment of the press (Common.swift), the pages helper no longer loses a command that
 // arrived with another, and when Resolve's API cannot open a page Resolve's own ⇧2..⇧8 do. Every press is logged in
 // ~/.config/resolve-assistant.log.
+// v16 (30.10.2026, Marko: "If permissions are not set, it needs to have text in the top right"): PERMISSIONS on the ON / OFF row.
 import SwiftUI
 import AppKit
 
@@ -178,6 +179,7 @@ struct SettingsView: View {
             Word(text: "ON", on: true) {}.help("DaVinci Resolve Actions runs")
             Word(text: "OFF", on: false) { NSApp.terminate(nil) }.help("Stop every module and quit")
             Spacer()
+            PermissionsWord()                           // v16: only while a permission is missing (Permissions.swift)
             Button(action: { (NSApp.keyWindow ?? NSApp.windows.first { $0.title.contains("DaVinci Resolve Actions") })?.performClose(nil) }) {
                 Image(systemName: "xmark").font(.system(size: 15, weight: .medium)).foregroundColor(GREY)
                     .frame(width: 30, height: 30).contentShape(Rectangle())
@@ -325,7 +327,9 @@ let UMBRELLA = Umbrella()
 final class Delegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ n: Notification) {
         _ = UMBRELLA
-        _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
+        // v16: never a request at login (--login); the PERMISSIONS word waits in the window
+        let atLogin = CommandLine.arguments.contains("--login")
+        _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: !atLogin] as CFDictionary)
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ s: NSApplication) -> Bool { false }
     // v3 (19.10.2026): the reopen (the star's row, the Dock) brings the window back, or lets the WindowGroup make a new one
