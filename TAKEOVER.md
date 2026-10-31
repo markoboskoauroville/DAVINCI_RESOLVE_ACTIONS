@@ -1,5 +1,9 @@
 # TAKEOVER
 
+**31.10.2026, v17: TOP on the first row.** Marko: *"Each needs to have the same user interface elements. On, off and
+top"*. TOP (TopWord in Common.swift) left of PERMISSIONS and ✕; green = window `.floating`, UserDefaults `onTop`,
+applied at launch. OFF, TOP, PERMISSIONS, ✕ are Accessibility buttons (`off`, `top`, `permissions`, `close`).
+
 **29.10.2026, v11: PROJECT BACKUP (backup and clean up).** scripts/Project Backup.py; actions.json "ask" (a form before
 the run: folder → --folder, ticks → --delete-source-media / --delete-source-project, "warn" ticks get a second confirm)
 and "direct" (runScript without the router: no time limit). Renders = files in a render job's TargetDir named like its

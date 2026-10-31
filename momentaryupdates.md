@@ -194,4 +194,6 @@ action stays open. Seen collapsed in the window; the click is Marko's (the names
 The first row as MANTRA_MANIFEST swift-apps.md "The first row of every app: ON OFF … TOP ✕": ON, OFF at the left, TOP
 (green: the window above every other, UserDefaults `onTop`, applied at launch) beside ✕ at the right; each an
 Accessibility button (`off`, `top`, `close`).
-**Status:** pending
+**Status:** done 31.10.2026 in v17: TOP left of PERMISSIONS and ✕ (green = `.floating`, `onTop`, applied at launch);
+OFF, TOP, PERMISSIONS and ✕ carry Accessibility identifiers. Checked at the minimum width 560 pt by a window capture;
+`top` found through Accessibility; the running copy quit through its menu's Quit and reopened with `--login`.

@@ -178,12 +178,15 @@ struct SettingsView: View {
             Text("DAVINCI RESOLVE ACTIONS").font(.system(size: 13, weight: .bold, design: .monospaced)).foregroundColor(.white).padding(.trailing, 6)
             Word(text: "ON", on: true) {}.help("DaVinci Resolve Actions runs")
             Word(text: "OFF", on: false) { NSApp.terminate(nil) }.help("Stop every module and quit")
+                .axButton("Off", id: "off") { DispatchQueue.main.async { NSApp.terminate(nil) } }
             Spacer()
+            TopWord()                                   // v17: TOP, green = above every window
             PermissionsWord()                           // v16: only while a permission is missing (Permissions.swift)
             Button(action: { (NSApp.keyWindow ?? NSApp.windows.first { $0.title.contains("DaVinci Resolve Actions") })?.performClose(nil) }) {
                 Image(systemName: "xmark").font(.system(size: 15, weight: .medium)).foregroundColor(GREY)
                     .frame(width: 30, height: 30).contentShape(Rectangle())
             }.buttonStyle(.plain).help("Close the window (DaVinci Resolve Actions stays ON)")
+            .accessibilityLabel("Close window").accessibilityIdentifier("close")
         }.padding(.leading, 24).padding(.trailing, 12).padding(.top, 10).padding(.bottom, 4)
         // v8 (28.10.2026, Marko: "make a tab for Actions ... redesign the user interface for this application with tabs
         // and group different styles of working"): ACTIONS (the one-button jobs, in groups), NAVIGATE (pages, J K L),

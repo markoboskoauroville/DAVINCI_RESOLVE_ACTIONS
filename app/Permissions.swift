@@ -44,6 +44,7 @@ struct PermissionsWord: View {
             Text("PERMISSIONS").font(.system(size: 13, weight: .bold, design: .monospaced)).foregroundColor(AMBER)
                 .padding(.horizontal, 6).padding(.vertical, 4).contentShape(Rectangle())
                 .onTapGesture { Permissions.openMissing() }
+                .axButton("Permissions", id: "permissions") { Permissions.openMissing() }
                 .help("A permission is missing: this opens its page in System Settings; switch DaVinci Resolve Actions (Mantra) on there")
         }
     }

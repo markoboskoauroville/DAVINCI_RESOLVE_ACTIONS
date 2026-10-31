@@ -4,7 +4,7 @@ import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 
-let VERSION = 16
+let VERSION = 17
 let RELEASES = "https://github.com/markoboskoauroville/DAVINCI_RESOLVE_ACTIONS/releases/latest"
 let BUNDLE = "com.blackmagic-design.DaVinciResolve"
 let PYTHON = NSHomeDirectory() + "/.pyenv/versions/3.10.14/bin/python3"
@@ -25,6 +25,31 @@ struct Word: View {
     var body: some View {
         Text(text).font(.system(size: 13, weight: .bold, design: .monospaced)).foregroundColor(on ? GREEN : GREY)
             .padding(.horizontal, 6).padding(.vertical, 4).contentShape(Rectangle()).onTapGesture(perform: action)
+    }
+}
+// v17 (Marko, 31.10.2026: "Each needs to have the same user interface elements. On, off and top"): TOP left of
+// PERMISSIONS and the ✕; green = the window stays above every other window, kept in "onTop" and applied at launch
+struct TopWord: View {
+    @AppStorage("onTop") private var onTop = false
+    var body: some View {
+        Word(text: "TOP", on: onTop) { onTop.toggle(); TopWord.float(onTop) }
+            .axButton("Top", id: "top", value: onTop ? "on" : "off") { onTop.toggle(); TopWord.float(onTop) }
+            .help("Always on top: green, the window stays above every other window")
+            .onAppear { DispatchQueue.main.async { TopWord.float(onTop) } }
+    }
+    static func float(_ on: Bool) {
+        for w in NSApp.windows where w.title.hasPrefix("DaVinci Resolve Actions") { w.level = on ? .floating : .normal }
+    }
+}
+// every control an Accessibility button (MANTRA_MANIFEST swift-apps.md, "Accessibility built in")
+extension View {
+    func axButton(_ label: String, id: String, value: String? = nil, _ action: @escaping () -> Void) -> some View {
+        accessibilityElement(children: .ignore)
+            .accessibilityLabel(label)
+            .accessibilityIdentifier(id)
+            .accessibilityValue(value ?? "")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction(.default, action)
     }
 }
 struct Label10: View {
