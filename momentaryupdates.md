@@ -186,3 +186,12 @@ action stays open. Seen collapsed in the window; the click is Marko's (the names
 > please make this in every application that needs some permission. If permissions are not set, it needs to have text in the top right: "Permissions." Then I click on it, and it opens me directly to my settings page where I need to set permissions.
 
 (MANTRA_MANIFEST modules/swift-apps.md, "PERMISSIONS at the top right while one is missing".) **Status:** built 30.10.2026, v16: app/Permissions.swift; the app needs Accessibility only (event taps, keys posted to Resolve). PERMISSIONS (amber, monospaced bold) on the ON / OFF row left of the ✕, only while it is missing; a click asks once through the system and opens Privacy_Accessibility. Re-read every 2 s, the row redrawn only on a change. The launch no longer asks at --login. Restarted 677 → 38144 (--login); its window, captured alone, shows no PERMISSIONS: Accessibility is allowed.
+
+## 31.10.2026: ON, OFF and TOP in every application
+
+> Please go to all the interface of my applications. Each needs to have the same user interface elements. On, off and top. Please build it in every application.
+
+The first row as MANTRA_MANIFEST swift-apps.md "The first row of every app: ON OFF … TOP ✕": ON, OFF at the left, TOP
+(green: the window above every other, UserDefaults `onTop`, applied at launch) beside ✕ at the right; each an
+Accessibility button (`off`, `top`, `close`).
+**Status:** pending
