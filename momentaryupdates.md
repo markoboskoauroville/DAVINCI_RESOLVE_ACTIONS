@@ -197,3 +197,9 @@ Accessibility button (`off`, `top`, `close`).
 **Status:** done 31.10.2026 in v17: TOP left of PERMISSIONS and ✕ (green = `.floating`, `onTop`, applied at launch);
 OFF, TOP, PERMISSIONS and ✕ carry Accessibility identifiers. Checked at the minimum width 560 pt by a window capture;
 `top` found through Accessibility; the running copy quit through its menu's Quit and reopened with `--login`.
+
+## Request (4.11.2026, ~07:50 CT, Mac session in MPA): step 2 of Hammerspoon out
+
+> Yes, go on with step 2. HD, UHD work test it: open the DaVinci Resolve and check. Confirm with screenshot if this is working if the settings are changing.
+
+**Status:** saved first.
