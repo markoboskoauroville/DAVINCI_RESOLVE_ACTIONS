@@ -203,3 +203,5 @@ OFF, TOP, PERMISSIONS and ✕ carry Accessibility identifiers. Checked at the mi
 > Yes, go on with step 2. HD, UHD work test it: open the DaVinci Resolve and check. Confirm with screenshot if this is working if the settings are changing.
 
 **Status:** saved first.
+
+> (during the request above) Make sure this app starts with DaVinci Resolve and also closes with DaVinci Resolve.
