@@ -44,6 +44,25 @@ def ask(method, path, body=None, timeout=70):
         sys.exit(4)
 
 
+CLEANUP = os.path.expanduser('~/ElevateMedia/tools/resolve_daily_cleanup.py')
+STAMP = os.path.expanduser('~/Library/Application Support/ElevateMediaMonitor/render_queue_cleaned')
+
+
+def daily_cleanup(who):
+    """4.11.2026 (Marko: "for the first time in a day ... go to render queue and simply remove from yesterday render
+    queue items"): the first run of a day empties the render queue first (resolve_daily_cleanup.py keeps the day)."""
+    try:
+        if not os.path.exists(CLEANUP) or (os.path.exists(STAMP) and open(STAMP).read().strip() == time.strftime('%Y-%m-%d')):
+            return
+        code, b = ask('POST', '/run', {'who': who, 'file': CLEANUP, 'args': [], 'timeout': 30}, timeout=60)
+        if b.get('out'):
+            sys.stderr.write(b['out'])
+    except SystemExit:
+        raise
+    except Exception:                                            # noqa: BLE001
+        pass
+
+
 def main(a):
     who, timeout, wait, plain = os.environ.get('RESOLVE_WHO', 'someone'), 60.0, 0.0, False
     rest = []
@@ -76,6 +95,7 @@ def main(a):
             body = {'who': who, 'code': rest[1], 'timeout': timeout}
         else:
             body = {'who': who, 'file': os.path.abspath(cmd), 'args': rest[1:], 'timeout': timeout}
+        daily_cleanup(who)
         end = time.time() + wait
         while True:
             code, b = ask('POST', '/run', body, timeout=timeout + 30)
