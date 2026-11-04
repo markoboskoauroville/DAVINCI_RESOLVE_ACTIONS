@@ -42,3 +42,7 @@ steps.py keys its state on the run id the app writes, never on module state alon
   (a master starting at 21:43 puts late clips at 00:13) breaks a time-code sync: choose the master's start with room.
 - Keypad digits opening the timecode box on a multicam: look for single viewer mode before writing a key mod.
 - Resolve's keyboard preset (keyboard.preset.xml) is a hex-encoded binary blob: read it, never edit it by hand.
+
+## 4.11.2026
+- The Star alone did not close a companion when Resolve quit; the app closing itself on Resolve's terminate is the sure way.
+- Resolve's Shift+9 did nothing from a scripted key; the gear at the bottom right opens Project Settings reliably.

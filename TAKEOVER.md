@@ -69,3 +69,9 @@ a single AppendToTimeline without mediaType lost the linked audio). Next: make i
   and Marko stopped it; ask him the frames by eye.
 - NUMBER KEYS (v14) held the keypad back off multicam clips; removed in v15. The real cause was single viewer mode:
   with the source viewer hidden, Switch to Angle has no multicam viewer and Resolve hands the digit to timecode entry.
+
+## 4.11.2026 (v18–v20)
+- Toggle HD UHD.py only writes ~/.config/hdbadge.json (no hs); this app follows it every second (menu bar "EDT · HD").
+- Opens with Resolve (Star v14 row `with: com.blackmagic-design.DaVinciResolve`), quits itself 1 s after Resolve quits (v19).
+- v20: Switch now / Read again are AX buttons (`hd-switch`, `hd-read`). The toggle knows only landscape HD/UHD: a vertical
+  project reads "?" and a switch would make it 3840x2160. Test projects only (ELEVATE_MEDIA is vertical).
