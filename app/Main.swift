@@ -47,6 +47,9 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
         nc.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main) { [weak self] n in
             guard (n.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier == BUNDLE else { return }
             self?.pages.resolveLeft(); self?.paint()
+            // v19 (Marko, 4.11.2026: "Make sure this app starts with DaVinci Resolve and also closes with DaVinci Resolve"):
+            // Resolve gone, this app goes too; the star (v14, row `with`) opens it again with the next Resolve
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { NSApp.terminate(nil) }
         }
         // every shortcut is his only while Resolve is in front
         nc.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { _ in
@@ -293,7 +296,8 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     ModuleHead(title: "HD / UHD", on: u.on["display"]!, set: { u.setModule("display", $0) }, value: display.mode)
                     if u.on["display"]! {
-                        HStack { Word(text: "SWITCH NOW", on: false) { display.toggle() }; Word(text: "READ AGAIN", on: false) { display.read() } }
+                        HStack { Word(text: "SWITCH NOW", on: false) { display.toggle() }.axButton("Switch now", id: "hd-switch") { display.toggle() }
+                                 Word(text: "READ AGAIN", on: false) { display.read() }.axButton("Read again", id: "hd-read") { display.read() } }
                         HStack { Label10(text: "SHORTCUT"); KeyField(placeholder: "ctrl+alt+cmd+U", text: display.hotkey) { let ok = display.setHotkey($0); u.rebindKeys(); return ok } }
                         if !display.said.isEmpty { Small(text: display.said) }
                     }

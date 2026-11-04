@@ -62,15 +62,9 @@ def remember(mode):
 
 
 def paint_badge(r, mode):
-    """The word in the menu bar (the star's UHD HD Display) shows the new mode."""
-    import subprocess
+    """The word in the menu bar shows the new mode: DaVinci Resolve Actions (Mantra) follows ~/.config/hdbadge.json.
+    (4.11.2026: no Hammerspoon any more, Marko: "stop Hammerspoon from running".)"""
     remember(mode)
-    lua = os.path.expanduser('~/Developer/MANTRA_STAR/overlay/hdbadge.lua')
-    try:
-        subprocess.run(['/opt/homebrew/bin/hs', '-c', 'return dofile(%r).set(%r)' % (lua, mode)],
-                       capture_output=True, text=True, timeout=8)
-    except (OSError, subprocess.TimeoutExpired):
-        pass
 
 
 def main():
