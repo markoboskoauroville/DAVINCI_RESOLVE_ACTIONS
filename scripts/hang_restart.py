@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 hang_restart.py: started (detached) by hang_watch.py when a render hangs. Reads the jobs from ~/.config/resolve-hang.json,
-quits DaVinci Resolve (killed when it does not go in 60 sec), opens it again, loads the same project through the router,
+saves and quits DaVinci Resolve (Cmd+S, Cmd+Q through Macro Recorder; ax-quit, SIGTERM, SIGKILL only when it ignores that: MANTRA 31.57), opens it again, loads the same project through the router,
 queues every unfinished job again and starts them. The app stays open through it (state "restarting").
 
 Captions (Marko 6.11.2026: "Subtitles are of uttermost importance"): a timeline with clips on a subtitle track is
@@ -48,6 +48,30 @@ def resolve_up():
     return subprocess.run(['pgrep', '-f', 'DaVinci Resolve.app/Contents/MacOS/Resolve'], capture_output=True).returncode == 0
 
 
+def save_and_quit(up, wait=60):
+    """MANTRA 31.57 (Marko 6.11.2026): Cmd+S, then Cmd+Q, through Macro Recorder; if Resolve ignores it, macro ax-quit,
+    then SIGTERM, last SIGKILL. `up` tells whether Resolve still runs. Returns how it went."""
+    def gone(sec):
+        for _ in range(int(sec / 2)):
+            if not up():
+                return True
+            time.sleep(2)
+        return not up()
+    subprocess.run(['macro', 'do', 'WinActivate "DaVinci Resolve"\\nSleep 500\\nSend "{Cmd down}s{Cmd up}"\\nSleep 2000\\n'
+                    'Send "{Cmd down}q{Cmd up}"'], capture_output=True, timeout=60)
+    if gone(wait):
+        return 'saved and quit'
+    subprocess.run(['macro', 'ax-quit', 'DaVinci Resolve'], capture_output=True, timeout=60)
+    if gone(30):
+        return 'ax-quit'
+    subprocess.run(['pkill', '-TERM', '-x', 'Resolve'])
+    if gone(20):
+        return 'SIGTERM'
+    subprocess.run(['pkill', '-9', '-x', 'Resolve'])
+    time.sleep(3)
+    return 'SIGKILL'
+
+
 def main():
     st = hw.read_state()
     snap = st.get('snap') or {}
@@ -55,16 +79,7 @@ def main():
     st.update(state='restarting', step='quitting DaVinci Resolve', since=time.time())
     hw.write_state(st)
 
-    subprocess.run(['osascript', '-e', 'tell application "DaVinci Resolve" to quit'], capture_output=True, timeout=30)
-    for _ in range(30):
-        if not resolve_up():
-            break
-        time.sleep(2)
-    how = 'quit'
-    if resolve_up():
-        subprocess.run(['pkill', '-9', '-f', 'DaVinci Resolve.app/Contents/MacOS/Resolve'])
-        time.sleep(3)
-        how = 'killed'
+    how = save_and_quit(resolve_up)
     # the half-written files of the jobs that were running go to the Trash before anything is rendered again
     for j in jobs:
         f = os.path.join(j.get('dir') or '', j.get('file') or '')

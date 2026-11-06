@@ -93,7 +93,7 @@ struct HangView: View {
             Spacer(minLength: 0)
             HStack(spacing: 14) {
                 if h.state == "hung" {
-                    Word(text: "1 RESTART DAVINCI", on: true) { h.restartNow() }
+                    Word(text: "RESTART DAVINCI", on: true) { h.restartNow() }
                         .axButton("Restart DaVinci", id: "restart-davinci") { h.restartNow() }
                         .help("Quit DaVinci Resolve, open it again with the project, queue the unfinished renders again (captions burned in)")
                 }
