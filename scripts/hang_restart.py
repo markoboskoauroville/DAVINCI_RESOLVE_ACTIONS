@@ -84,7 +84,7 @@ def main():
     for j in jobs:
         f = os.path.join(j.get('dir') or '', j.get('file') or '')
         if j.get('status') == 'Rendering' and os.path.isfile(f):
-            os.rename(f, os.path.expanduser('~/.Trash/') + os.path.basename(f) + '.hung_' + time.strftime('%H%M%S'))
+            os.remove(f)                                          # a half-written file is deleted, never kept
 
     st.update(step='opening DaVinci Resolve (it was %s)' % how)
     hw.write_state(st)
