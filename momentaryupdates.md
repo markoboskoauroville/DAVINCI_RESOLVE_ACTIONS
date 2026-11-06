@@ -211,3 +211,7 @@ OFF, TOP, PERMISSIONS and ✕ carry Accessibility identifiers. Checked at the mi
 ## 6.11.2026
 
 > also, please build the DaVinci monitor inside this application, which is Assistant for DaVinci. It's going to just warn you if DaVinci hangs. If it hangs, we need to restart it and start the job again, not stay in one place like Prometheus
+
+> in our DaVinci Resolve assistant, we need to bring in the hang detector. When it hangs, it needs to give me the invoice, and also show a message on screen that "This DaVinci stopped responding" is not working
+
+(read as: give me the voice; 6.11.2026)
