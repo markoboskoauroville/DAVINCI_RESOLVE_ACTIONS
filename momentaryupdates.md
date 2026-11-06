@@ -207,3 +207,7 @@ OFF, TOP, PERMISSIONS and ✕ carry Accessibility identifiers. Checked at the mi
 > (during the request above) Make sure this app starts with DaVinci Resolve and also closes with DaVinci Resolve.
 
 **Status:** done 4.11.2026 ~08:15 CT (v18–v20). Toggle HD UHD.py no longer calls Hammerspoon: it writes ~/.config/hdbadge.json, which this app follows (the word in the menu bar, "EDT · HD"). Opens and closes with Resolve: Star (Mantra) v14 opens it silently when Resolve starts (row `with`), and the app quits itself 1 s after Resolve quits (v19). SWITCH NOW and READ AGAIN are Accessibility buttons (v20, `hd-switch`, `hd-read`). Tested in Resolve on a throwaway project "HD UHD TEST" (ELEVATE_MEDIA is vertical 1080x1920 and was not touched; saved first, reopened and saved after, test project deleted): screenshots ~/Desktop/hduhd-1-before.png (1920 x 1080 HD, word HD), hduhd-2-after-UHD.png (3840 x 2160 Ultra HD, word UHD), hduhd-3-back-HD.png (1920 x 1080 HD, word HD). Resolve opened → Actions after 2 s; Resolve quit → Actions closed. Note: the toggle knows only landscape HD/UHD; a vertical project reads "?" and a switch would make it 3840 x 2160.
+
+## 6.11.2026
+
+> also, please build the DaVinci monitor inside this application, which is Assistant for DaVinci. It's going to just warn you if DaVinci hangs. If it hangs, we need to restart it and start the job again, not stay in one place like Prometheus
