@@ -46,3 +46,10 @@ steps.py keys its state on the run id the app writes, never on module state alon
 ## 4.11.2026
 - The Star alone did not close a companion when Resolve quit; the app closing itself on Resolve's terminate is the sure way.
 - Resolve's Shift+9 did nothing from a scripted key; the gear at the bottom right opens Project Settings reliably.
+
+## 6.11.2026 (v21-v23: hang detector, save-and-quit)
+
+- **Cmd+S / Cmd+Q through Macro Recorder did not close DaVinci** after finished renders; `macro ax-quit` did, every time. The hang path keeps Cmd+S, Cmd+Q first (31.57), then ax-quit, SIGTERM, SIGKILL; check which one worked in the log.
+- **Half-written files of a hung render are deleted, not moved to the Trash** (v23).
+- **A hang detector must not add a second connection to Resolve.** It runs as a thread inside the router, through the router's own queue.
+- **The app must not quit while the detector restarts Resolve:** the termination observer checks `restarting` first.
