@@ -8,6 +8,20 @@ under one umbrella application."*
 `/Applications/DaVinci Resolve Actions (Mantra).app`, signed "Mantra Apps", built by `./build.sh`; the star opens it. While Resolve runs, one word sits in the menu bar, **`EDT · HD`** (the page and the resolution); its menu
 reaches the pages, the HD/UHD switch, every action and the settings window.
 
+## HANG DETECTOR (v21, 6.11.2026)
+
+Marko: *"It's going to just warn you if DaVinci hangs. If it hangs, we need to restart it and start the job again"* and
+*"give me the voice, and also show a message on screen that this DaVinci stopped responding"*.
+
+Inside the router (`scripts/hang_watch.py`), every 5 sec through the router's own queue: a render whose percent and
+output file stand still for 3 min (one pass) or 10 min (multi-pass: the second pass may sit still for minutes), or a
+Resolve that does not answer for 90 sec, is HUNG. Then the voice says it once and a panel on the screen with the mouse
+says **This DaVinci stopped responding** (the menu-bar word starts with ⚠ HUNG). A hung render is restarted by itself
+(`scripts/hang_restart.py`): Resolve quit (killed after 60 sec), opened again, the project loaded, the half-written file
+to the Trash, every unfinished job queued again with captions burned in whenever the timeline has captions, started;
+at most 3 times for the same job. A frozen Resolve with no render running is only warned about: **1 RESTART DAVINCI**
+in the panel is his. State: `~/.config/resolve-hang.json`. Built by GitHub Actions (`.github/workflows/build.yml`).
+
 ## ON / OFF and the ✕ (v3, 19.10.2026)
 
 The window starts with **DAVINCI RESOLVE ACTIONS  ON  OFF** (MANTRA_MANIFEST swift-apps.md): ON is lit while it runs;

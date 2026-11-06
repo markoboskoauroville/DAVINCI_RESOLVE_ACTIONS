@@ -416,6 +416,10 @@ def main():
     log('router on %d (pid %d)' % (port, os.getpid()))
     print('router %d' % port, flush=True)
     threading.Thread(target=R.dispatch, daemon=True).start()
+    # v21 (6.11.2026): the hang detector, through this router's own queue (hang_watch.py)
+    sys.path.insert(0, HERE)
+    import hang_watch
+    threading.Thread(target=hang_watch.watch, args=(R, log), daemon=True).start()
 
     def leave(*_):
         R.kill()

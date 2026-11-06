@@ -25,6 +25,7 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
     let importer = ImportModule()
     let actions = ActionsModule()
     let jkl = JKLModule()
+    let hang = HangModule()
     @Published var on: [String: Bool] = [:]
     let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
@@ -37,6 +38,7 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
         item.button?.toolTip = "DaVinci Resolve Actions: the page and the resolution; click for everything"
         pages.onChange = { [weak self] in self?.paint() }
         display.onChange = { [weak self] in self?.paint() }
+        hang.onChange = { [weak self] in self?.paint() }
         pages.setOn(on["pages"]!); display.on = on["display"]!; importer.setOn(on["import"]!); jkl.setOn(on["jkl"]!)
         let nc = NSWorkspace.shared.notificationCenter
         nc.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] n in
@@ -49,7 +51,12 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
             self?.pages.resolveLeft(); self?.paint()
             // v19 (Marko, 4.11.2026: "Make sure this app starts with DaVinci Resolve and also closes with DaVinci Resolve"):
             // Resolve gone, this app goes too; the star (v14, row `with`) opens it again with the next Resolve
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { NSApp.terminate(nil) }
+            // v21: not while the hang detector restarts Resolve (it opens it again and needs the router)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self?.hang.read()
+                if self?.hang.restarting == true || resolveApp() != nil { return }
+                NSApp.terminate(nil)
+            }
         }
         // every shortcut is his only while Resolve is in front
         nc.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { _ in
@@ -73,7 +80,13 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
         var parts: [String] = []
         if on["pages"]! { parts.append(PAGE_CODE[pages.current] ?? "---") }
         if on["display"]! { parts.append(display.mode) }
-        item.button?.title = parts.isEmpty ? "DR" : parts.joined(separator: " · ")
+        let word = parts.isEmpty ? "DR" : parts.joined(separator: " · ")
+        // v21: the hang detector's state in front of the word
+        switch hang.state {
+        case "hung": item.button?.title = "⚠ HUNG · " + word; item.isVisible = true
+        case "restarting": item.button?.title = "⟳ RESTART · " + word; item.isVisible = true
+        default: item.button?.title = word
+        }
         objectWillChange.send()
     }
 

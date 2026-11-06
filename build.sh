@@ -33,6 +33,7 @@ cat > "$APP/Contents/Info.plist" <<PL
 </dict></plist>
 PL
 rm -rf "$APP/Contents/Resources/scripts"; cp -R scripts "$APP/Contents/Resources/scripts"; rm -rf "$APP/Contents/Resources/scripts/__pycache__"   # the scripts and actions.json travel inside the app
-codesign --force -s "Mantra Apps" "$APP"
+codesign --force -s "${SIGN:-Mantra Apps}" "$APP"
+[ -n "$NO_INSTALL" ] && { echo "built $APP (v$V)"; exit 0; }
 rm -rf "/Applications/$NAME.app"; cp -R "$APP" /Applications/
 echo "built $APP (v$V) and installed it in /Applications"
