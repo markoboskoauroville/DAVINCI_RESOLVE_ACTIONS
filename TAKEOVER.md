@@ -151,3 +151,6 @@ job.py`, `hold`/`release`. Port `resolve` (8940) in ~/.config/mantra-ports.json,
 rule: MANTRA_MANIFEST modules/resolve-router.md.
 
 **v9 (28.10.2026):** every action has PLAY, NEXT STEP, STOP and RESTART, with a status line per step. A script marks its steps with `scripts/steps.py` (`step("title")`, `say("what it does")`) and lists their titles as `steps` in actions.json; see TAKEOVER.
+
+## Menu-bar hover card and pipes (v24, 16.11.2026)
+Marko: "with all my apps on the menu bar, make a comprehensive pop-up menu. When I hover over, I want to see what is it and what is it doing." and "for my apps always make a pipes before and after so I know where one app ends and other begins." `app/HoverCard.swift` is the shared kit file (MANTRA_MANIFEST kits/menubar-hover, rule modules/menubar-hover.md): hovering the item about 0.4 s shows a card with name, what it is, state and live lines; a thin grey pipe stands before and after the visible title. The app supplies its lines in the `HoverCard.attach(...)` closure. Test without a mouse: launch with `--hovercard-shot`. Change the lines in the app; change the module only in the kit.

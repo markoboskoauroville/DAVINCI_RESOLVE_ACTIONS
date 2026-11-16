@@ -53,3 +53,6 @@ steps.py keys its state on the run id the app writes, never on module state alon
 - **Half-written files of a hung render are deleted, not moved to the Trash** (v23).
 - **A hang detector must not add a second connection to Resolve.** It runs as a thread inside the router, through the router's own queue.
 - **The app must not quit while the detector restarts Resolve:** the termination observer checks `restarting` first.
+
+## Lesson: hover card and pipes (16.11.2026)
+Poll the mouse (macOS draws a status item once per display, only one copy owns the button, so a tracking area misses the other display). The panel needs `titleVisibility = .hidden` for the one-title guard. A non-activating NSPanel at statusBar+1 never takes focus. Pipes for text items: attributed title; for icon items: pipedIcon + rightPipe; for view items: drawPipes or PipesView.
