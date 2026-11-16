@@ -36,6 +36,10 @@ final class Umbrella: NSObject, ObservableObject, NSMenuDelegate {
         on = ["pages": saved["pages"] ?? true, "display": saved["display"] ?? true, "import": saved["import"] ?? true, "jkl": saved["jkl"] ?? true]
         let menu = NSMenu(); menu.delegate = self; item.menu = menu
         item.button?.toolTip = "DaVinci Resolve Actions: the page and the resolution; click for everything"
+        HoverCard.attach(to: item, autoPipe: true) { [weak self] in
+            guard let self = self else { return HoverCard.Content(name: "DaVinci Resolve Actions (Mantra)", what: "", state: "") }
+            return HoverCard.Content(name: "DaVinci Resolve Actions (Mantra)", what: "Pages, resolution, import and JKL for Resolve", state: (self.on.values.contains(true) ? "ON" : "OFF"), stateColor: .systemGreen, lines: ["Modules on: " + (self.on.filter { $0.value }.keys.sorted().joined(separator: ", ")), "Modules off: " + (self.on.filter { !$0.value }.keys.sorted().joined(separator: ", "))])
+        }
         pages.onChange = { [weak self] in self?.paint() }
         display.onChange = { [weak self] in self?.paint() }
         hang.onChange = { [weak self] in self?.paint() }

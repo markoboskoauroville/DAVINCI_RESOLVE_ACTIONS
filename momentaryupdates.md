@@ -215,3 +215,6 @@ OFF, TOP, PERMISSIONS and ✕ carry Accessibility identifiers. Checked at the mi
 > in our DaVinci Resolve assistant, we need to bring in the hang detector. When it hangs, it needs to give me the invoice, and also show a message on screen that "This DaVinci stopped responding" is not working
 
 (read as: give me the voice; 6.11.2026)
+
+16.11.2026 (Marko, 16.11.2026): "Please with all my apps on the menu bar, make a comprehensive pop-up menu. When I hover over, I want to see what is it and what is it doing." and "for my apps always make a pipes before and after so I know where one app ends and other begins."
+**Status:** saved first; building in v24 (HoverCard kit: hover card and grey pipes).
